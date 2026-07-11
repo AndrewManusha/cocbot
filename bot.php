@@ -1,23 +1,32 @@
 <?php
 
+
 file_put_contents(
-    __DIR__.'/alive.txt',
-    date('H:i:s')." работает\n",
+    __DIR__ . '/alive.txt',
+    date('H:i:s') . " работает\n",
     FILE_APPEND
 );
+
+
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/helpers.php';
-require_once __DIR__ . '/permissions.php';
 require_once __DIR__ . '/commands.php';
 
 
+
+
 // =====================================
-// ПОЛУЧЕНИЕ ДАННЫХ ОТ TELEGRAM
+// ПОЛУЧЕНИЕ UPDATE TELEGRAM
 // =====================================
 
-$content = file_get_contents("php://input");
+
+$content =
+    file_get_contents(
+        "php://input"
+    );
+
 
 
 if (!$content) {
@@ -34,8 +43,11 @@ $update =
         true
     );
 
+
+
 if (
-    !$update ||
+    !$update
+    ||
     !isset(
         $update['message']
     )
@@ -52,9 +64,11 @@ $message =
 
 
 
+
 // =====================================
-// ПРОВЕРКА ПОЛЬЗОВАТЕЛЯ
+// ПРОВЕРКА USER
 // =====================================
+
 
 if (
     !isset(
@@ -73,35 +87,23 @@ $telegramUser =
 
 
 
-$user = [
 
-    'id' =>
-        $telegramUser['id'],
+// =====================================
+// СОХРАНЕНИЕ ПОЛЬЗОВАТЕЛЯ
+// =====================================
 
-    'username' =>
-        '@'
-        .
-        (
-            $telegramUser['username']
-            ??
-            $telegramUser['first_name']
-        )
-
-];
-
-
-
-// Автоматически добавляем в базу
 
 registerUser(
-    $user
+    $telegramUser
 );
+
 
 
 
 // =====================================
 // ОБРАБОТКА КОМАНД
 // =====================================
+
 
 processCommand(
     $message

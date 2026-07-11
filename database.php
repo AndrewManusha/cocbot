@@ -3,20 +3,30 @@
 require_once __DIR__ . '/config.php';
 
 
-// ===============================
-// ПОДКЛЮЧЕНИЕ SQLITE
-// ===============================
+// =====================================
+// MYSQL CONNECTION
+// =====================================
 
 try {
 
     $db = new PDO(
-        'sqlite:' . DB_FILE
+
+        "mysql:host=" . DB_HOST .
+        ";dbname=" . DB_NAME .
+        ";charset=" . DB_CHARSET,
+
+        DB_USER,
+
+        DB_PASS
+
     );
+
 
     $db->setAttribute(
         PDO::ATTR_ERRMODE,
         PDO::ERRMODE_EXCEPTION
     );
+
 
     $db->setAttribute(
         PDO::ATTR_DEFAULT_FETCH_MODE,
@@ -24,16 +34,18 @@ try {
     );
 
 
-} catch (PDOException $e) {
+}
+catch(PDOException $e)
+{
 
     file_put_contents(
         LOG_FILE,
-        date('d.m.Y H:i:s') .
-        " DATABASE ERROR: " .
+        "[" . date("d.m.Y H:i:s") . "] DATABASE ERROR: " .
         $e->getMessage() .
         PHP_EOL,
         FILE_APPEND
     );
+
 
     exit;
 
@@ -41,88 +53,218 @@ try {
 
 
 
-// ===============================
-// СОЗДАНИЕ ТАБЛИЦЫ УЧАСТНИКОВ
-// ===============================
 
-$db->exec("
+// =====================================
+// USERS
+// =====================================
 
-CREATE TABLE IF NOT EXISTS members (
 
-    user_id INTEGER PRIMARY KEY,
+// получить пользователя
 
-    username TEXT NOT NULL,
+function getUser($telegram_id)
+{
 
-    rank INTEGER DEFAULT 2,
+    global $db;
 
-    kv_status TEXT DEFAULT 'да',
 
-    kv_reason TEXT DEFAULT '',
+    $stmt = $db->prepare("
 
-    joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        SELECT *
 
-    last_seen TEXT DEFAULT CURRENT_TIMESTAMP
+        FROM users
 
+        WHERE telegram_id = ?
+
+        LIMIT 1
+
+    ");
+
+
+    $stmt->execute([
+        $telegram_id
+    ]);
+
+
+    return $stmt->fetch();
+
+}
+
+
+
+
+// добавить пользователя
+
+function addUser($data)
+{
+
+    global $db;
+
+
+    $stmt = $db->prepare("
+
+        INSERT INTO users
+        (
+            telegram_id,
+            username,
+            first_name,
+            last_name,
+            joined_at,
+            last_activity
+        )
+
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            NOW(),
+            NOW()
+        )
+
+    ");
+
+
+    return $stmt->execute([
+
+        $data['telegram_id'],
+
+        $data['username'] ?? '',
+
+        $data['first_name'] ?? '',
+
+        $data['last_name'] ?? ''
+
+    ]);
+
+}
+
+
+
+
+// обновить время активности
+
+function updateUserActivity($telegram_id)
+{
+
+    global $db;
+
+
+    $stmt = $db->prepare("
+
+        UPDATE users
+
+        SET last_activity = NOW()
+
+        WHERE telegram_id = ?
+
+    ");
+
+
+    return $stmt->execute([
+        $telegram_id
+    ]);
+
+}
+
+
+
+
+// сохранить Clash тег
+
+function setPlayerTag(
+    $telegram_id,
+    $player_tag
 )
+{
 
-");
-
-
-
-// ===============================
-// ТАБЛИЦА ЛОГОВ
-// ===============================
-
-$db->exec("
-
-CREATE TABLE IF NOT EXISTS logs (
-
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-    user_id INTEGER,
-
-    username TEXT,
-
-    action TEXT,
-
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
-
-)
-
-");
+    global $db;
 
 
+    $stmt = $db->prepare("
 
-// ===============================
-// СОЗДАНИЕ НАСТРОЕК
-// ===============================
+        UPDATE users
 
-$db->exec("
+        SET player_tag = ?
 
-CREATE TABLE IF NOT EXISTS settings (
+        WHERE telegram_id = ?
 
-    name TEXT PRIMARY KEY,
+    ");
 
-    value TEXT
 
-)
+    return $stmt->execute([
 
-");
+        $player_tag,
+
+        $telegram_id
+
+    ]);
+
+}
 
 
 
-// ===============================
-// ДОБАВЛЕНИЕ ПЕРВОГО АДМИНА
-// ===============================
-//
-// После установки сюда можно добавить
-// свой Telegram ID.
-//
-// Например:
-// UPDATE members SET rank=5 WHERE user_id=123456;
-//
-//
 
+// получить всех пользователей
+
+function getUsers()
+{
+
+    global $db;
+
+
+    $stmt = $db->query("
+
+        SELECT *
+
+        FROM users
+
+        ORDER BY joined_at ASC
+
+    ");
+
+
+    return $stmt->fetchAll();
+
+}
+
+
+
+
+// =====================================
+// ADMINS
+// =====================================
+
+
+// проверка администратора
+
+function isAdmin($telegram_id)
+{
+
+    global $db;
+
+
+    $stmt = $db->prepare("
+
+        SELECT telegram_id
+
+        FROM admins
+
+        WHERE telegram_id = ?
+
+        LIMIT 1
+
+    ");
+
+
+    $stmt->execute([
+        $telegram_id
+    ]);
+
+
+    return (bool)$stmt->fetch();
+
+}
 
 
 ?>

@@ -167,7 +167,13 @@ function updateUserActivity($telegram_id)
 
 }
 
+// Проверка существования игрока в клане
+// Пока таблицы players нет — пропускаем проверку
 
+function checkPlayerExistsInClan($player_tag)
+{
+    return true;
+}
 
 
 // сохранить Clash тег

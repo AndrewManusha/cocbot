@@ -177,8 +177,16 @@ function setPlayerTag(
     $player_tag
 )
 {
-
     global $db;
+
+
+    $player_tag = strtoupper(trim($player_tag));
+    $player_tag = ltrim($player_tag, '#');
+
+
+    if (!checkPlayerExistsInClan($player_tag)) {
+        return false;
+    }
 
 
     $stmt = $db->prepare("

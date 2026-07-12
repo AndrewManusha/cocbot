@@ -18,11 +18,11 @@ function normalizeClanTag($tag)
  */
 function clanExists($tag)
 {
-    global $bd;
+    global $db;
 
     $tag = normalizeClanTag($tag);
 
-    $stmt = $bd->prepare("
+    $stmt = $db->prepare("
         SELECT 1
         FROM clans
         WHERE tag = ?
@@ -39,9 +39,9 @@ function clanExists($tag)
  */
 function addClan($clan)
 {
-    global $bd;
+    global $db;
 
-    $stmt = $bd->prepare("
+    $stmt = $db->prepare("
         INSERT INTO clans
         (
             tag,

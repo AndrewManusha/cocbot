@@ -26,26 +26,28 @@ function clashApiRequest($endpoint)
 
     $response = curl_exec($ch);
 
-    if (curl_errno($ch)) {
-        curl_close($ch);
-        return false;
-    }
-
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
+    $curlError = curl_error($ch);
+
     curl_close($ch);
+
+    echo "URL: " . $url . "<br>";
+    echo "HTTP CODE: " . $httpCode . "<br>";
+    
+    if ($curlError) {
+        echo "CURL ERROR: " . $curlError;
+    }
+
+    echo "<pre>";
+    print_r($response);
+    echo "</pre>";
 
     if ($httpCode !== 200) {
         return false;
     }
 
-    $data = json_decode($response, true);
-
-    if (!is_array($data)) {
-        return false;
-    }
-
-    return $data;
+    return json_decode($response, true);
 }
 
 /**

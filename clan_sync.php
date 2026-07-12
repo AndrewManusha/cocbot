@@ -111,7 +111,7 @@ function syncClanPlayers($clanTag)
 
         $stmt->execute([
 
-            $player['tag'],
+            normalizeTag($player['tag']),
 
             $clanTag,
 
@@ -119,7 +119,7 @@ function syncClanPlayers($clanTag)
 
             $player['role'] ?? '',
 
-            $player['league']['name'] ?? '',
+            $player['leagueTier']['name'] ?? '',
 
             $player['townHallLevel'] ?? 0,
 

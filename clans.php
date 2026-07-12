@@ -73,3 +73,18 @@ function addClan($clan)
         $clan['capitalLeague']['name'] ?? ''
     ]);
 }
+
+// получить кланы с базы
+
+function getClans()
+{
+    global $db;
+
+    $stmt = $db->query("
+        SELECT tag, name
+        FROM clans
+        ORDER BY name
+    ");
+
+    return $stmt->fetchAll();
+}

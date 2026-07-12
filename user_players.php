@@ -21,7 +21,7 @@ function getUserPlayers($telegram_id)
 
         WHERE telegram_id = ?
 
-        ORDER BY is_main DESC, created_at ASC
+        ORDER BY is_main DESC, verified_at ASC
 
     ");
 
@@ -170,7 +170,6 @@ function addUserPlayer(
             player_tag,
             telegram_id,
             is_main,
-            created_at,
             verified_at
         )
 
@@ -179,7 +178,6 @@ function addUserPlayer(
             ?,
             ?,
             ?,
-            NOW(),
             NOW()
         )
 

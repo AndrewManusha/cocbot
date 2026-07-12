@@ -14,6 +14,7 @@ function createVerification(
 )
 {
     global $db;
+    $player_tag = normalizeTag($player_tag);
 
 
     if (is_array($labels)) {
@@ -33,7 +34,6 @@ function createVerification(
             player_tag,
             telegram_id,
             labels,
-            created_at,
             expires_at
         )
 
@@ -42,7 +42,6 @@ function createVerification(
             ?,
             ?,
             ?,
-            NOW(),
             DATE_ADD(NOW(), INTERVAL 5 MINUTE)
         )
 
@@ -50,7 +49,6 @@ function createVerification(
 
             telegram_id = VALUES(telegram_id),
             labels = VALUES(labels),
-            created_at = NOW(),
             expires_at = DATE_ADD(NOW(), INTERVAL 5 MINUTE)
 
     ");
@@ -78,6 +76,7 @@ function createVerification(
 function getVerification($player_tag)
 {
     global $db;
+    $player_tag = normalizeTag($player_tag);
 
 
     $stmt = $db->prepare("
@@ -115,6 +114,7 @@ function getVerification($player_tag)
 function deleteVerification($player_tag)
 {
     global $db;
+    $player_tag = normalizeTag($player_tag);
 
 
     $stmt = $db->prepare("

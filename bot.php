@@ -13,6 +13,8 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/commands.php';
+require_once __DIR__ . '/clans.php';
+require_once __DIR__ . '/clash_api.php';
 
 
 

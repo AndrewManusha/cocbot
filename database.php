@@ -242,7 +242,48 @@ function getUsers()
 
 }
 
+// =====================================
+// PLAYERS
+// =====================================
 
+
+// Проверка существования игрока в таблице players
+
+function playerExists($player_tag)
+{
+    global $db;
+
+
+    $player_tag = strtoupper(
+        trim(
+            ltrim($player_tag, '#')
+        )
+    );
+
+
+    $stmt = $db->prepare("
+
+        SELECT player_tag
+
+        FROM players
+
+        WHERE player_tag = ?
+
+        LIMIT 1
+
+    ");
+
+
+    $stmt->execute([
+
+        $player_tag
+
+    ]);
+
+
+    return (bool)$stmt->fetchColumn();
+
+}
 
 
 // =====================================

@@ -15,6 +15,9 @@ require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/commands.php';
 require_once __DIR__ . '/clans.php';
 require_once __DIR__ . '/clash_api.php';
+require_once __DIR__ . '/user_players.php';
+require_once __DIR__ . '/player_verifications.php';
+require_once __DIR__ . '/verification.php';
 
 
 
@@ -47,12 +50,105 @@ $update =
 
 
 
+
+// =====================================
+// ПРОВЕРКА UPDATE
+// =====================================
+
+
+if (!$update) {
+
+    exit;
+
+}
+
+
+
+
+// =====================================
+// CALLBACK QUERY (КНОПКИ)
+// =====================================
+
+
 if (
-    !$update
-    ||
-    !isset(
-        $update['message']
-    )
+    isset($update['callback_query'])
+) {
+
+
+    $callback =
+        $update['callback_query'];
+
+
+
+    $data =
+        $callback['data'] ?? '';
+
+
+
+    if (
+        str_starts_with(
+            $data,
+            'verify_'
+        )
+    ) {
+
+
+        $playerTag =
+            str_replace(
+                'verify_',
+                '',
+                $data
+            );
+
+
+
+        $chat_id =
+            $callback['message']['chat']['id'];
+
+
+
+        $thread_id =
+            $callback['message']['message_thread_id']
+            ?? null;
+
+
+
+        $telegram_id =
+            $callback['from']['id'];
+
+
+
+        verifyPlayerAccount(
+            $telegram_id,
+            $playerTag,
+            $chat_id,
+            $thread_id
+        );
+
+
+        answerCallback(
+            $callback['id']
+        );
+
+    }
+
+
+
+    exit;
+
+}
+
+
+
+
+
+// =====================================
+// ОБЫЧНОЕ СООБЩЕНИЕ
+// =====================================
+
+
+if (
+    !isset($update['message'])
 ) {
 
     exit;
@@ -63,6 +159,7 @@ if (
 
 $message =
     $update['message'];
+
 
 
 
@@ -90,6 +187,7 @@ $telegramUser =
 
 
 
+
 // =====================================
 // СОХРАНЕНИЕ ПОЛЬЗОВАТЕЛЯ
 // =====================================
@@ -98,6 +196,7 @@ $telegramUser =
 registerUser(
     $telegramUser
 );
+
 
 
 

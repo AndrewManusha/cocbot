@@ -3,6 +3,8 @@
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/clans.php';
 require_once __DIR__ . '/clash_api.php';
+require_once __DIR__ . '/user_players.php';
+require_once __DIR__ . '/player_verifications.php';
 
 
 // =====================================
@@ -201,10 +203,11 @@ function commandTag(
 {
 
     $tag =
-        trim(
-            implode(" ", $args)
+        normalizeTag(
+            trim(
+                implode(" ", $args)
+            )
         );
-
 
 
     if ($tag == '') {
@@ -221,19 +224,100 @@ function commandTag(
 
 
 
-    setPlayerTag(
+    // Проверяем есть ли игрок в нашей базе
+
+    if (!playerExists($tag)) {
+
+
+        // Если нет — проверяем через API
+
+        $player =
+            getPlayerFromApi($tag);
+
+
+
+        if (!$player) {
+
+            sendMessage(
+                $chat_id,
+                $thread_id,
+                "❌ Игрок с таким тегом не найден."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+
+    // Проверяем, не привязан ли уже аккаунт
+
+    if (hasUserPlayer($tag)) {
+
+        sendMessage(
+            $chat_id,
+            $thread_id,
+            "⚠️ Этот аккаунт уже привязан к Telegram."
+        );
+
+        return;
+
+    }
+
+
+
+    // Генерируем 3 случайных labels
+
+    $verification =
+        generateVerificationLabels();
+
+
+
+    // Создаём временную проверку
+
+    createVerification(
         $from_id,
-        $tag
+        $tag,
+        $verification
     );
 
 
 
-    sendMessage(
+    $text =
+        "🔐 <b>Проверка аккаунта</b>\n\n";
+
+
+    $text .=
+        "Установите в Clash of Clans следующие метки:\n\n";
+
+
+
+    foreach ($verification['names'] as $name) {
+
+        $text .=
+            "🏷 " .
+            htmlspecialchars($name) .
+            "\n";
+
+    }
+
+
+
+    $text .=
+        "\nПосле установки нажмите кнопку ниже.";
+
+
+
+
+
+    sendMessageWithButton(
         $chat_id,
         $thread_id,
-        "✅ Ваш тег сохранён:\n<code>" .
-        htmlspecialchars($tag) .
-        "</code>"
+        $text,
+        "✅ Готово",
+        "verify_" . $tag
     );
 
 }

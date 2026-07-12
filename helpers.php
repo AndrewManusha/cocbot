@@ -314,4 +314,137 @@ function addLog(
 }
 
 
+
+function sendMessageWithButton(
+    $chat_id,
+    $thread_id,
+    $text,
+    $buttonText,
+    $callbackData
+)
+{
+
+    $data = [
+
+        'chat_id' => $chat_id,
+
+        'text' => $text,
+
+        'parse_mode' => DEFAULT_PARSE_MODE,
+
+        'disable_web_page_preview' => true,
+
+        'reply_markup' => json_encode([
+
+            'inline_keyboard' => [
+
+                [
+
+                    [
+                        'text' => $buttonText,
+                        'callback_data' => $callbackData
+                    ]
+
+                ]
+
+            ]
+
+        ])
+
+    ];
+
+
+
+    if ($thread_id !== null) {
+
+        $data['message_thread_id'] = $thread_id;
+
+    }
+
+
+
+    $curl = curl_init();
+
+
+    curl_setopt_array(
+        $curl,
+        [
+
+            CURLOPT_URL => API_URL . "sendMessage",
+
+            CURLOPT_POST => true,
+
+            CURLOPT_POSTFIELDS => $data,
+
+            CURLOPT_RETURNTRANSFER => true
+
+        ]
+    );
+
+
+    $result = curl_exec($curl);
+
+
+    curl_close($curl);
+
+
+    return $result;
+
+}
+
+
+// =====================================
+// ОТВЕТ НА CALLBACK
+// =====================================
+
+function answerCallback(
+    $callback_id,
+    $text = ''
+)
+{
+
+    $data = [
+
+        'callback_query_id' => $callback_id
+
+    ];
+
+
+    if ($text !== '') {
+
+        $data['text'] = $text;
+
+    }
+
+
+    $curl = curl_init();
+
+
+    curl_setopt_array(
+        $curl,
+        [
+
+            CURLOPT_URL =>
+                API_URL . "answerCallbackQuery",
+
+            CURLOPT_POST =>
+                true,
+
+            CURLOPT_POSTFIELDS =>
+                $data,
+
+            CURLOPT_RETURNTRANSFER =>
+                true
+
+        ]
+    );
+
+
+    curl_exec($curl);
+
+    curl_close($curl);
+
+}
+
+
 ?>

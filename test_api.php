@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 
 require_once __DIR__ . '/clash_api.php';
 
-$result = getClanFromApi('#ТЕГ_ТВОЕГО_КЛАНА');
+$result = getClanFromApi('#2CUUJUR0R');
 
 echo '<pre>';
 var_dump($result);

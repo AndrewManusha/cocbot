@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/config.php';
+
 require_once __DIR__ . '/database.php';
 
 
@@ -23,6 +23,7 @@ function writeLog($text)
 
 
 
+
 // =====================================
 // ОТПРАВКА TELEGRAM MESSAGE
 // =====================================
@@ -33,71 +34,11 @@ function sendMessage(
     $text
 )
 {
-
-    $data = [
-
-        'chat_id' => $chat_id,
-
-        'text' => $text,
-
-        'parse_mode' => DEFAULT_PARSE_MODE,
-
-        'disable_web_page_preview' => true
-
-    ];
-
-
-
-    if ($thread_id !== null) {
-
-        $data['message_thread_id'] = $thread_id;
-
-    }
-
-
-
-    $curl = curl_init();
-
-
-    curl_setopt_array(
-        $curl,
-        [
-
-            CURLOPT_URL =>
-                API_URL . "sendMessage",
-
-            CURLOPT_POST =>
-                true,
-
-            CURLOPT_POSTFIELDS =>
-                $data,
-
-            CURLOPT_RETURNTRANSFER =>
-                true
-
-        ]
+    return telegram()->sendMessage(
+        $chat_id,
+        $thread_id,
+        $text
     );
-
-
-    $result = curl_exec($curl);
-
-
-
-    if ($result === false) {
-
-        writeLog(
-            "CURL ERROR: " .
-            curl_error($curl)
-        );
-
-    }
-
-
-    curl_close($curl);
-
-
-    return $result;
-
 }
 
 
@@ -114,10 +55,11 @@ function sendLongMessage(
 )
 {
 
-    $parts = str_split(
-        $text,
-        4000
-    );
+    $parts =
+        str_split(
+            $text,
+            4000
+        );
 
 
     foreach ($parts as $part) {
@@ -131,6 +73,59 @@ function sendLongMessage(
     }
 
 }
+
+
+
+
+// =====================================
+// СООБЩЕНИЕ С КНОПКОЙ
+// =====================================
+
+function sendMessageWithButton(
+    $chat_id,
+    $thread_id,
+    $text,
+    $buttonText,
+    $callbackData
+)
+{
+
+    return message()
+
+        ->chat($chat_id)
+
+        ->thread($thread_id)
+
+        ->text($text)
+
+        ->button(
+            $buttonText,
+            $callbackData
+        )
+
+        ->send();
+
+}
+
+
+
+
+
+// =====================================
+// ОТВЕТ НА CALLBACK
+// =====================================
+
+function answerCallback(
+    $callback_id,
+    $text = ''
+)
+{
+    return telegram()->answerCallback(
+        $callback_id,
+        $text
+    );
+}
+
 
 
 
@@ -176,6 +171,7 @@ function getReplyUser($message)
     ];
 
 }
+
 
 
 
@@ -241,6 +237,7 @@ function registerUser($user)
 
 
 
+
 // =====================================
 // ССЫЛКА НА USER
 // =====================================
@@ -292,6 +289,7 @@ function mentionUser($user)
 
 
 
+
 // =====================================
 // ЛОГ ДЕЙСТВИЙ
 // =====================================
@@ -312,139 +310,3 @@ function addLog(
     );
 
 }
-
-
-
-function sendMessageWithButton(
-    $chat_id,
-    $thread_id,
-    $text,
-    $buttonText,
-    $callbackData
-)
-{
-
-    $data = [
-
-        'chat_id' => $chat_id,
-
-        'text' => $text,
-
-        'parse_mode' => DEFAULT_PARSE_MODE,
-
-        'disable_web_page_preview' => true,
-
-        'reply_markup' => json_encode([
-
-            'inline_keyboard' => [
-
-                [
-
-                    [
-                        'text' => $buttonText,
-                        'callback_data' => $callbackData
-                    ]
-
-                ]
-
-            ]
-
-        ])
-
-    ];
-
-
-
-    if ($thread_id !== null) {
-
-        $data['message_thread_id'] = $thread_id;
-
-    }
-
-
-
-    $curl = curl_init();
-
-
-    curl_setopt_array(
-        $curl,
-        [
-
-            CURLOPT_URL => API_URL . "sendMessage",
-
-            CURLOPT_POST => true,
-
-            CURLOPT_POSTFIELDS => $data,
-
-            CURLOPT_RETURNTRANSFER => true
-
-        ]
-    );
-
-
-    $result = curl_exec($curl);
-
-
-    curl_close($curl);
-
-
-    return $result;
-
-}
-
-
-// =====================================
-// ОТВЕТ НА CALLBACK
-// =====================================
-
-function answerCallback(
-    $callback_id,
-    $text = ''
-)
-{
-
-    $data = [
-
-        'callback_query_id' => $callback_id
-
-    ];
-
-
-    if ($text !== '') {
-
-        $data['text'] = $text;
-
-    }
-
-
-    $curl = curl_init();
-
-
-    curl_setopt_array(
-        $curl,
-        [
-
-            CURLOPT_URL =>
-                API_URL . "answerCallbackQuery",
-
-            CURLOPT_POST =>
-                true,
-
-            CURLOPT_POSTFIELDS =>
-                $data,
-
-            CURLOPT_RETURNTRANSFER =>
-                true
-
-        ]
-    );
-
-
-    curl_exec($curl);
-
-    curl_close($curl);
-
-}
-
-
-?>

@@ -23,6 +23,15 @@ require_once __DIR__ . '/Messaging/Message.php';
 
 
 // ===============================
+// CALLBACKS
+// ===============================
+
+require_once __DIR__ . '/Callbacks/VerifyCallback.php';
+
+require_once __DIR__ . '/Callbacks/CallbackHandler.php';
+
+
+// ===============================
 // ROUTER
 // ===============================
 

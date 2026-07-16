@@ -5,6 +5,21 @@ class Router
 {
 
 
+    private CallbackHandler $callbackHandler;
+
+
+
+    public function __construct()
+    {
+
+        $this->callbackHandler =
+            new CallbackHandler();
+
+    }
+
+
+
+
     public function handle(array $update): void
     {
 
@@ -15,9 +30,11 @@ class Router
             isset($update['callback_query'])
         ) {
 
+
             $this->handleCallback(
                 $update['callback_query']
             );
+
 
             return;
 
@@ -31,9 +48,11 @@ class Router
             isset($update['message'])
         ) {
 
+
             $this->handleMessage(
                 $update['message']
             );
+
 
             return;
 
@@ -45,64 +64,15 @@ class Router
 
 
 
-    private function handleCallback(array $callback): void
+
+    private function handleCallback(
+        array $callback
+    ): void
     {
 
-
-        $data =
-            $callback['data'] ?? '';
-
-
-
-        if (
-            str_starts_with(
-                $data,
-                'verify_'
-            )
-        ) {
-
-
-            $playerTag =
-                str_replace(
-                    'verify_',
-                    '',
-                    $data
-                );
-
-
-
-            $chat_id =
-                $callback['message']['chat']['id'];
-
-
-
-            $thread_id =
-                $callback['message']['message_thread_id']
-                ?? null;
-
-
-
-            $telegram_id =
-                $callback['from']['id'];
-
-
-
-            verifyPlayerAccount(
-                $telegram_id,
-                $playerTag,
-                $chat_id,
-                $thread_id
-            );
-
-
-
-            answerCallback(
-                $callback['id']
-            );
-
-
-        }
-
+        $this->callbackHandler->handle(
+            $callback
+        );
 
     }
 
@@ -110,7 +80,10 @@ class Router
 
 
 
-    private function handleMessage(array $message): void
+
+    private function handleMessage(
+        array $message
+    ): void
     {
 
 

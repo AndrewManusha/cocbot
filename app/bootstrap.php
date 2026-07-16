@@ -22,14 +22,25 @@ require_once __DIR__ . '/Messaging/Keyboard.php';
 require_once __DIR__ . '/Messaging/Message.php';
 
 
+// ===============================
+// ROUTER
+// ===============================
+
+require_once __DIR__ . '/Router/Router.php';
+
+
 
 
 // ===============================
-// SERVICES INSTANCES
+// INSTANCES
 // ===============================
 
 $GLOBALS['telegram'] =
     new TelegramService();
+
+
+$GLOBALS['router'] =
+    new Router();
 
 
 
@@ -48,4 +59,11 @@ function telegram(): TelegramService
 function message(): Message
 {
     return new Message();
+}
+
+
+
+function router(): Router
+{
+    return $GLOBALS['router'];
 }

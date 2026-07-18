@@ -38,6 +38,8 @@ require_once __DIR__ . '/Services/TelegramService.php';
 
 require_once __DIR__ . '/Services/ClanSyncService.php';
 
+require_once __DIR__ . '/Services/PlayerVerificationService.php';
+
 
 
 
@@ -124,6 +126,11 @@ $GLOBALS['clanSyncService'] =
 
 
 
+$GLOBALS['playerVerificationService'] =
+    new PlayerVerificationService();
+
+
+
 $GLOBALS['router'] =
     new Router();
 
@@ -199,6 +206,13 @@ function telegram(): TelegramService
 function clanSyncService(): ClanSyncService
 {
     return $GLOBALS['clanSyncService'];
+}
+
+
+
+function playerVerificationService(): PlayerVerificationService
+{
+    return $GLOBALS['playerVerificationService'];
 }
 
 

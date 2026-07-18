@@ -44,6 +44,10 @@ require_once __DIR__ . '/Services/UserService.php';
 
 require_once __DIR__ . '/Services/ClanService.php';
 
+require_once __DIR__ . '/Services/PlayerService.php';
+
+require_once __DIR__ . '/Services/AdminService.php';
+
 
 
 
@@ -145,6 +149,15 @@ $GLOBALS['clanService'] =
 
 
 
+$GLOBALS['playerService'] =
+    new PlayerService();
+
+
+$GLOBALS['adminService'] =
+    new AdminService();
+
+
+
 $GLOBALS['router'] =
     new Router();
 
@@ -241,6 +254,20 @@ function userService(): UserService
 function clanService(): ClanService
 {
     return $GLOBALS['clanService'];
+}
+
+
+
+function playerService(): PlayerService
+{
+    return $GLOBALS['playerService'];
+}
+
+
+
+function adminService(): AdminService
+{
+    return $GLOBALS['adminService'];
 }
 
 

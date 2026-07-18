@@ -1,281 +1,74 @@
 <?php
 
-require_once __DIR__ . '/database.php';
-require_once __DIR__ . '/clash_api.php';
-
 
 // =====================================
-// ПОЛУЧИТЬ ВСЕ АККАУНТЫ ПОЛЬЗОВАТЕЛЯ
+// USER PLAYERS
 // =====================================
+
+
+// получить все аккаунты пользователя
 
 function getUserPlayers($telegram_id)
 {
-    global $db;
-
-
-    $stmt = $db->prepare("
-
-        SELECT *
-
-        FROM user_players
-
-        WHERE telegram_id = ?
-
-        ORDER BY is_main DESC, verified_at ASC
-
-    ");
-
-
-    $stmt->execute([
+    return userPlayerRepository()->getByUser(
         $telegram_id
-    ]);
-
-
-    return $stmt->fetchAll();
-
+    );
 }
 
 
 
 
-// =====================================
-// ПОЛУЧИТЬ ОСНОВНОЙ АККАУНТ
-// =====================================
+// получить основной аккаунт
 
 function getMainPlayer($telegram_id)
 {
-    global $db;
-
-
-    $stmt = $db->prepare("
-
-        SELECT *
-
-        FROM user_players
-
-        WHERE telegram_id = ?
-
-        AND is_main = 1
-
-        LIMIT 1
-
-    ");
-
-
-    $stmt->execute([
+    return userPlayerRepository()->getMain(
         $telegram_id
-    ]);
-
-
-    return $stmt->fetch();
-
+    );
 }
 
 
 
 
-// =====================================
-// ПРОВЕРКА ПРИВЯЗКИ АККАУНТА
-// =====================================
+// проверить привязку аккаунта
 
 function hasUserPlayer($player_tag)
 {
-    global $db;
-
-
-    $player_tag =
-        normalizeTag($player_tag);
-
-
-    $stmt = $db->prepare("
-
-        SELECT player_tag
-
-        FROM user_players
-
-        WHERE player_tag = ?
-
-        LIMIT 1
-
-    ");
-
-
-    $stmt->execute([
+    return userPlayerRepository()->exists(
         $player_tag
-    ]);
-
-
-    return (bool)$stmt->fetchColumn();
-
+    );
 }
 
 
 
 
-// =====================================
-// ДОБАВИТЬ АККАУНТ ПОЛЬЗОВАТЕЛЯ
-// =====================================
+// добавить аккаунт
 
 function addUserPlayer(
     $telegram_id,
     $player_tag
 )
 {
-    global $db;
-
-
-    $player_tag =
-        normalizeTag($player_tag);
-
-
-    if (hasUserPlayer($player_tag)) {
-
-        return false;
-
-    }
-
-
-    // Проверяем есть ли уже аккаунты
-
-    $stmt = $db->prepare("
-
-        SELECT COUNT(*)
-
-        FROM user_players
-
-        WHERE telegram_id = ?
-
-    ");
-
-
-    $stmt->execute([
-        $telegram_id
-    ]);
-
-
-    $count =
-        $stmt->fetchColumn();
-
-
-
-    $is_main =
-        ($count == 0) ? 1 : 0;
-
-
-
-    $stmt = $db->prepare("
-
-        INSERT INTO user_players
-        (
-            player_tag,
-            telegram_id,
-            is_main,
-            verified_at
-        )
-
-        VALUES
-        (
-            ?,
-            ?,
-            ?,
-            NOW()
-        )
-
-    ");
-
-
-    return $stmt->execute([
-
-        $player_tag,
-
+    return userPlayerRepository()->create(
         $telegram_id,
-
-        $is_main
-
-    ]);
-
+        $player_tag
+    );
 }
 
 
 
 
-// =====================================
-// СДЕЛАТЬ АККАУНТ ОСНОВНЫМ
-// =====================================
+// сделать основным
 
 function setMainPlayer(
     $telegram_id,
     $player_tag
 )
 {
-    global $db;
-
-
-    $player_tag =
-        normalizeTag($player_tag);
-
-
-    $db->beginTransaction();
-
-
-    try {
-
-
-        $stmt = $db->prepare("
-
-            UPDATE user_players
-
-            SET is_main = 0
-
-            WHERE telegram_id = ?
-
-        ");
-
-
-        $stmt->execute([
-            $telegram_id
-        ]);
-
-
-
-        $stmt = $db->prepare("
-
-            UPDATE user_players
-
-            SET is_main = 1
-
-            WHERE telegram_id = ?
-
-            AND player_tag = ?
-
-        ");
-
-
-        $stmt->execute([
-
-            $telegram_id,
-
-            $player_tag
-
-        ]);
-
-
-        $db->commit();
-
-
-        return true;
-
-
-    }
-    catch (Exception $e)
-    {
-
-        $db->rollBack();
-
-        return false;
-
-    }
-
+    return userPlayerRepository()->setMain(
+        $telegram_id,
+        $player_tag
+    );
 }
 
 ?>

@@ -10,7 +10,15 @@ require_once __DIR__ . '/../config.php';
 
 require_once __DIR__ . '/Database/Database.php';
 
+
+// ===============================
+// REPOSITORIES
+// ===============================
+
 require_once __DIR__ . '/Repositories/UserRepository.php';
+
+require_once __DIR__ . '/Repositories/PlayerRepository.php';
+
 
 
 
@@ -19,6 +27,8 @@ require_once __DIR__ . '/Repositories/UserRepository.php';
 // ===============================
 
 require_once __DIR__ . '/Services/TelegramService.php';
+
+
 
 
 // ===============================
@@ -32,6 +42,8 @@ require_once __DIR__ . '/Messaging/Keyboard.php';
 require_once __DIR__ . '/Messaging/Message.php';
 
 
+
+
 // ===============================
 // CALLBACKS
 // ===============================
@@ -41,11 +53,14 @@ require_once __DIR__ . '/Callbacks/VerifyCallback.php';
 require_once __DIR__ . '/Callbacks/CallbackHandler.php';
 
 
+
+
 // ===============================
 // ROUTER
 // ===============================
 
 require_once __DIR__ . '/Router/Router.php';
+
 
 
 
@@ -64,6 +79,11 @@ $GLOBALS['userRepository'] =
 
 
 
+$GLOBALS['playerRepository'] =
+    new PlayerRepository();
+
+
+
 $GLOBALS['telegram'] =
     new TelegramService();
 
@@ -71,6 +91,8 @@ $GLOBALS['telegram'] =
 
 $GLOBALS['router'] =
     new Router();
+
+
 
 
 
@@ -87,10 +109,20 @@ function database(): Database
 
 
 
+
 function userRepository(): UserRepository
 {
     return $GLOBALS['userRepository'];
 }
+
+
+
+
+function playerRepository(): PlayerRepository
+{
+    return $GLOBALS['playerRepository'];
+}
+
 
 
 
@@ -101,10 +133,12 @@ function telegram(): TelegramService
 
 
 
+
 function message(): Message
 {
     return new Message();
 }
+
 
 
 

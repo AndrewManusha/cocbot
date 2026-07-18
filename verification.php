@@ -11,11 +11,11 @@ require_once __DIR__ . '/clash_api.php';
 // =====================================
 
 function verifyPlayerAccount(
-    $telegram_id,
-    $player_tag,
-    $chat_id,
-    $thread_id
-)
+    int $telegram_id,
+    string $player_tag,
+    int $chat_id,
+    ?int $thread_id = null
+): void
 {
 
     $player_tag =
@@ -24,8 +24,6 @@ function verifyPlayerAccount(
         );
 
 
-
-    // Получаем активную проверку
 
     $verification =
         verificationRepository()
@@ -50,11 +48,9 @@ function verifyPlayerAccount(
 
 
 
-    // Проверяем владельца проверки
-
     if (
-        $verification['telegram_id']
-        !=
+        (int)$verification['telegram_id']
+        !==
         $telegram_id
     ) {
 
@@ -70,8 +66,6 @@ function verifyPlayerAccount(
 
 
 
-
-    // Получаем игрока из API
 
     $player =
         getPlayerFromApi(
@@ -95,8 +89,6 @@ function verifyPlayerAccount(
 
 
 
-    // Проверяем labels
-
     if (
         !checkPlayerVerificationLabels(
             $player,
@@ -118,15 +110,16 @@ function verifyPlayerAccount(
 
 
 
-    // Добавляем аккаунт
-
-    if (
-        !userPlayerRepository()
+    $created =
+        userPlayerRepository()
             ->create(
                 $telegram_id,
                 $player_tag
-            )
-    ) {
+            );
+
+
+
+    if (!$created) {
 
         sendMessage(
             $chat_id,
@@ -140,8 +133,6 @@ function verifyPlayerAccount(
 
 
 
-
-    // Удаляем проверку
 
     verificationRepository()
         ->delete(
@@ -159,11 +150,8 @@ function verifyPlayerAccount(
         "🎮 Тег: <code>#" .
         htmlspecialchars(
             $player_tag
-        )
-        .
+        ) .
         "</code>"
     );
 
 }
-
-?>

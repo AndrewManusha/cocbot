@@ -38,6 +38,39 @@ function getUsers()
 
 
 // =====================================
+// PLAYER TAG
+// =====================================
+
+function setPlayerTag(
+    $telegram_id,
+    $player_tag
+)
+{
+
+    $player_tag =
+        strtoupper(
+            trim($player_tag)
+        );
+
+
+    $player_tag =
+        ltrim(
+            $player_tag,
+            '#'
+        );
+
+
+    return playerRepository()->setUserTag(
+        $telegram_id,
+        $player_tag
+    );
+
+}
+
+
+
+
+// =====================================
 // PLAYERS
 // =====================================
 

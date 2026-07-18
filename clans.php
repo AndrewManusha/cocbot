@@ -1,11 +1,17 @@
 <?php
 
 
+// =====================================
+// CLAN SERVICE FUNCTIONS
+// =====================================
+
+
 function normalizeClanTag($tag)
 {
     return clanRepository()
         ->normalizeTag($tag);
 }
+
 
 
 
@@ -17,11 +23,13 @@ function clanExists($tag)
 
 
 
+
 function addClan($clan)
 {
     return clanRepository()
         ->create($clan);
 }
+
 
 
 

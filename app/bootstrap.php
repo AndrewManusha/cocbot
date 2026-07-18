@@ -5,6 +5,14 @@ require_once __DIR__ . '/../config.php';
 
 
 // ===============================
+// DATABASE
+// ===============================
+
+require_once __DIR__ . '/Database/Database.php';
+
+
+
+// ===============================
 // SERVICES
 // ===============================
 
@@ -44,8 +52,14 @@ require_once __DIR__ . '/Router/Router.php';
 // INSTANCES
 // ===============================
 
+$GLOBALS['database'] =
+    new Database();
+
+
+
 $GLOBALS['telegram'] =
     new TelegramService();
+
 
 
 $GLOBALS['router'] =
@@ -57,6 +71,14 @@ $GLOBALS['router'] =
 // ===============================
 // HELPERS
 // ===============================
+
+
+function database(): Database
+{
+    return $GLOBALS['database'];
+}
+
+
 
 function telegram(): TelegramService
 {

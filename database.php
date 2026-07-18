@@ -122,18 +122,8 @@ function playerExists($player_tag)
 function isAdmin($telegram_id)
 {
 
-    return database()
-        ->getConnection()
-        ->prepare(
-            "
-            SELECT telegram_id
-            FROM admins
-            WHERE telegram_id = ?
-            LIMIT 1
-            "
-        )
-        ->execute([
-            $telegram_id
-        ]);
+    return adminRepository()->isAdmin(
+        $telegram_id
+    );
 
 }

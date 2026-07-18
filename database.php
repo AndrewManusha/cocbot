@@ -1,5 +1,6 @@
 <?php
 
+
 require_once __DIR__ . '/config.php';
 
 
@@ -39,11 +40,15 @@ catch(PDOException $e)
 {
 
     file_put_contents(
+
         LOG_FILE,
+
         "[" . date("d.m.Y H:i:s") . "] DATABASE ERROR: " .
         $e->getMessage() .
         PHP_EOL,
+
         FILE_APPEND
+
     );
 
 
@@ -64,28 +69,9 @@ catch(PDOException $e)
 function getUser($telegram_id)
 {
 
-    global $db;
-
-
-    $stmt = $db->prepare("
-
-        SELECT *
-
-        FROM users
-
-        WHERE telegram_id = ?
-
-        LIMIT 1
-
-    ");
-
-
-    $stmt->execute([
+    return userRepository()->find(
         $telegram_id
-    ]);
-
-
-    return $stmt->fetch();
+    );
 
 }
 
@@ -97,45 +83,9 @@ function getUser($telegram_id)
 function addUser($data)
 {
 
-    global $db;
-
-
-    $stmt = $db->prepare("
-
-        INSERT INTO users
-        (
-            telegram_id,
-            username,
-            first_name,
-            last_name,
-            joined_at,
-            last_activity
-        )
-
-        VALUES
-        (
-            ?,
-            ?,
-            ?,
-            ?,
-            NOW(),
-            NOW()
-        )
-
-    ");
-
-
-    return $stmt->execute([
-
-        $data['telegram_id'],
-
-        $data['username'] ?? '',
-
-        $data['first_name'] ?? '',
-
-        $data['last_name'] ?? ''
-
-    ]);
+    return userRepository()->create(
+        $data
+    );
 
 }
 
@@ -147,25 +97,31 @@ function addUser($data)
 function updateUserActivity($telegram_id)
 {
 
-    global $db;
-
-
-    $stmt = $db->prepare("
-
-        UPDATE users
-
-        SET last_activity = NOW()
-
-        WHERE telegram_id = ?
-
-    ");
-
-
-    return $stmt->execute([
+    return userRepository()->updateActivity(
         $telegram_id
-    ]);
+    );
 
 }
+
+
+
+
+// получить всех пользователей
+
+function getUsers()
+{
+
+    return userRepository()->all();
+
+}
+
+
+
+
+// =====================================
+// PLAYER TAG
+// =====================================
+
 
 // Проверка существования игрока в клане
 // Пока таблицы players нет — пропускаем проверку
@@ -176,6 +132,8 @@ function checkPlayerExistsInClan($player_tag)
 }
 
 
+
+
 // сохранить Clash тег
 
 function setPlayerTag(
@@ -183,27 +141,45 @@ function setPlayerTag(
     $player_tag
 )
 {
+
     global $db;
 
 
-    $player_tag = strtoupper(trim($player_tag));
-    $player_tag = ltrim($player_tag, '#');
+    $player_tag =
+        strtoupper(
+            trim(
+                $player_tag
+            )
+        );
+
+
+    $player_tag =
+        ltrim(
+            $player_tag,
+            '#'
+        );
+
 
 
     if (!checkPlayerExistsInClan($player_tag)) {
+
         return false;
+
     }
 
 
-    $stmt = $db->prepare("
 
-        UPDATE users
+    $stmt =
+        $db->prepare("
 
-        SET player_tag = ?
+            UPDATE users
 
-        WHERE telegram_id = ?
+            SET player_tag = ?
 
-    ");
+            WHERE telegram_id = ?
+
+        ");
+
 
 
     return $stmt->execute([
@@ -219,29 +195,6 @@ function setPlayerTag(
 
 
 
-// получить всех пользователей
-
-function getUsers()
-{
-
-    global $db;
-
-
-    $stmt = $db->query("
-
-        SELECT *
-
-        FROM users
-
-        ORDER BY joined_at ASC
-
-    ");
-
-
-    return $stmt->fetchAll();
-
-}
-
 // =====================================
 // PLAYERS
 // =====================================
@@ -251,27 +204,35 @@ function getUsers()
 
 function playerExists($player_tag)
 {
+
     global $db;
 
 
-    $player_tag = strtoupper(
-        trim(
-            ltrim($player_tag, '#')
-        )
-    );
+    $player_tag =
+        strtoupper(
+            trim(
+                ltrim(
+                    $player_tag,
+                    '#'
+                )
+            )
+        );
 
 
-    $stmt = $db->prepare("
 
-        SELECT player_tag
+    $stmt =
+        $db->prepare("
 
-        FROM players
+            SELECT player_tag
 
-        WHERE player_tag = ?
+            FROM players
 
-        LIMIT 1
+            WHERE player_tag = ?
 
-    ");
+            LIMIT 1
+
+        ");
+
 
 
     $stmt->execute([
@@ -281,9 +242,12 @@ function playerExists($player_tag)
     ]);
 
 
+
     return (bool)$stmt->fetchColumn();
 
 }
+
+
 
 
 // =====================================
@@ -299,22 +263,27 @@ function isAdmin($telegram_id)
     global $db;
 
 
-    $stmt = $db->prepare("
+    $stmt =
+        $db->prepare("
 
-        SELECT telegram_id
+            SELECT telegram_id
 
-        FROM admins
+            FROM admins
 
-        WHERE telegram_id = ?
+            WHERE telegram_id = ?
 
-        LIMIT 1
+            LIMIT 1
 
-    ");
+        ");
+
 
 
     $stmt->execute([
+
         $telegram_id
+
     ]);
+
 
 
     return (bool)$stmt->fetch();

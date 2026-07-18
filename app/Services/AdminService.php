@@ -21,7 +21,9 @@ class AdminService
 
 
 
-    public function isAdmin(int $telegram_id): bool
+    public function isAdmin(
+        int $telegram_id
+    ): bool
     {
 
         return $this->admins

@@ -5,6 +5,7 @@ class PlayerService
 {
 
     private PlayerRepository $players;
+
     private UserPlayerRepository $userPlayers;
 
 
@@ -36,11 +37,15 @@ class PlayerService
 
 
 
-    public function getUserPlayers(int $telegram_id): array
+    public function getUserPlayers(
+        int $telegram_id
+    ): array
     {
 
         return $this->userPlayers
-            ->getByUser($telegram_id);
+            ->getByUser(
+                $telegram_id
+            );
 
     }
 
@@ -48,11 +53,33 @@ class PlayerService
 
 
 
-    public function isLinked(string $tag): bool
+    public function isLinked(
+        string $tag
+    ): bool
     {
 
         return $this->userPlayers
-            ->exists($tag);
+            ->exists(
+                $tag
+            );
+
+    }
+
+
+
+
+
+    public function link(
+        int $telegram_id,
+        string $tag
+    ): bool
+    {
+
+        return $this->userPlayers
+            ->create(
+                $telegram_id,
+                $tag
+            );
 
     }
 

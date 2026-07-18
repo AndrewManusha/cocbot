@@ -55,6 +55,7 @@ function commandHelp($chat_id, $thread_id)
 
 
 
+
 // =====================================
 // СПИСОК ИГРОКОВ
 // =====================================
@@ -66,10 +67,18 @@ function commandList($chat_id, $thread_id)
         "📋 <b>КЛАН</b>\n\n";
 
 
+    $userService =
+        userService();
+
+
+    $playerService =
+        playerService();
+
+
 
     $admins =
-        userRepository()
-            ->allAdmins();
+        $userService
+            ->admins();
 
 
 
@@ -85,13 +94,16 @@ function commandList($chat_id, $thread_id)
     }
     else {
 
+
         foreach ($admins as $user) {
 
             $text .=
                 mentionUser($user)
-                . "\n";
+                .
+                "\n";
 
         }
+
 
         $text .= "\n";
 
@@ -99,9 +111,11 @@ function commandList($chat_id, $thread_id)
 
 
 
+
     $users =
-        userRepository()
-            ->allWithoutAdmins();
+        $userService
+            ->members();
+
 
 
 
@@ -127,8 +141,8 @@ function commandList($chat_id, $thread_id)
 
 
             $players =
-                userPlayerRepository()
-                    ->getByUser(
+                $playerService
+                    ->getUserPlayers(
                         $user['telegram_id']
                     );
 
@@ -150,7 +164,9 @@ function commandList($chat_id, $thread_id)
 
 
             $text .=
-                $line . "\n";
+                $line
+                .
+                "\n";
 
         }
 
@@ -165,6 +181,7 @@ function commandList($chat_id, $thread_id)
     );
 
 }
+
 
 
 
@@ -205,8 +222,13 @@ function commandTag(
 
 
 
+    $playerService =
+        playerService();
+
+
+
     if (
-        !playerRepository()
+        !$playerService
             ->exists($tag)
     ) {
 
@@ -234,8 +256,8 @@ function commandTag(
 
 
     if (
-        userPlayerRepository()
-            ->exists($tag)
+        $playerService
+            ->isLinked($tag)
     ) {
 
         sendMessage(
@@ -270,7 +292,6 @@ function commandTag(
         "🔐 <b>Проверка аккаунта</b>\n\n";
 
 
-
     $text .=
         "Установите метки:\n\n";
 
@@ -291,8 +312,6 @@ function commandTag(
 
     $text .=
         "\nПосле установки нажмите кнопку.";
-
-
 
 
 
@@ -322,7 +341,7 @@ function commandAnnouncement(
 {
 
     if (
-        !adminRepository()
+        !adminService()
             ->isAdmin($from_id)
     ) {
 
@@ -339,7 +358,7 @@ function commandAnnouncement(
 
 
     $users =
-        userRepository()
+        userService()
             ->all();
 
 
@@ -359,7 +378,6 @@ function commandAnnouncement(
 
 
     $mentions = "";
-
 
 
     foreach ($users as $user) {
@@ -397,6 +415,7 @@ function commandAddClan($message, $args)
     $chat_id =
         $message['chat']['id'];
 
+
     $thread_id =
         $message['message_thread_id']
         ??
@@ -408,9 +427,8 @@ function commandAddClan($message, $args)
 
 
 
-
     if (
-        !adminRepository()
+        !adminService()
             ->isAdmin($from_id)
     ) {
 
@@ -440,7 +458,6 @@ function commandAddClan($message, $args)
 
 
 
-
     $tag =
         normalizeTag(
             $args[0]
@@ -454,7 +471,8 @@ function commandAddClan($message, $args)
 
 
     if (
-        $service->exists($tag)
+        $service
+            ->exists($tag)
     ) {
 
         sendMessage(
@@ -489,7 +507,8 @@ function commandAddClan($message, $args)
 
 
     if (
-        $service->add($clan)
+        $service
+            ->add($clan)
     ) {
 
         sendMessage(
@@ -502,15 +521,6 @@ function commandAddClan($message, $args)
             "🎯 Уровень: {$clan['clanLevel']}\n"
             .
             "👥 Участников: {$clan['members']}"
-        );
-
-    }
-    else {
-
-        sendMessage(
-            $chat_id,
-            $thread_id,
-            "❌ Ошибка сохранения."
         );
 
     }
@@ -592,7 +602,7 @@ function commandClans($chat_id, $thread_id)
 
 
 // =====================================
-// ROUTER КОМАНД
+// ROUTER
 // =====================================
 
 function processCommand($message)
@@ -627,12 +637,10 @@ function processCommand($message)
         $message['chat']['id'];
 
 
-
     $thread_id =
         $message['message_thread_id']
         ??
         null;
-
 
 
     $from_id =
@@ -645,7 +653,6 @@ function processCommand($message)
             " ",
             $text
         );
-
 
 
     $command =
@@ -722,7 +729,6 @@ function processCommand($message)
 
         case "клан":
 
-
             if (
                 isset($args[0])
                 &&
@@ -730,7 +736,6 @@ function processCommand($message)
                 ==
                 "добавить"
             ) {
-
 
                 commandAddClan(
                     $message,
@@ -740,10 +745,8 @@ function processCommand($message)
                     )
                 );
 
-
             }
             else {
-
 
                 commandClans(
                     $chat_id,
@@ -752,9 +755,7 @@ function processCommand($message)
 
             }
 
-
         break;
-
 
     }
 

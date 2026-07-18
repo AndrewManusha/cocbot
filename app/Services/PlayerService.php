@@ -26,7 +26,9 @@ class PlayerService
 
 
 
-    // Проверка существования игрока в базе
+    // =====================================
+    // ПРОВЕРКА СУЩЕСТВОВАНИЯ ИГРОКА
+    // =====================================
 
     public function exists(
         string $tag
@@ -34,7 +36,9 @@ class PlayerService
     {
 
         return $this->players
-            ->exists($tag);
+            ->exists(
+                $tag
+            );
 
     }
 
@@ -42,7 +46,9 @@ class PlayerService
 
 
 
-    // Получить аккаунты пользователя
+    // =====================================
+    // ПОЛУЧИТЬ ВСЕ АККАУНТЫ ПОЛЬЗОВАТЕЛЯ
+    // =====================================
 
     public function getUserPlayers(
         int $telegram_id
@@ -60,7 +66,9 @@ class PlayerService
 
 
 
-    // Получить главный аккаунт
+    // =====================================
+    // ПОЛУЧИТЬ ГЛАВНЫЙ АККАУНТ
+    // =====================================
 
     public function getMainPlayer(
         int $telegram_id
@@ -78,7 +86,29 @@ class PlayerService
 
 
 
-    // Проверка привязки
+    // =====================================
+    // ПОЛУЧИТЬ АККАУНТ ПО TAG
+    // =====================================
+
+    public function getPlayerByTag(
+        string $tag
+    ): ?array
+    {
+
+        return $this->userPlayers
+            ->getByTag(
+                $tag
+            );
+
+    }
+
+
+
+
+
+    // =====================================
+    // ПРОВЕРКА ПРИВЯЗКИ
+    // =====================================
 
     public function isLinked(
         string $tag
@@ -96,7 +126,31 @@ class PlayerService
 
 
 
-    // Привязать аккаунт
+    // =====================================
+    // ПРОВЕРКА ПРИНАДЛЕЖНОСТИ
+    // =====================================
+
+    public function belongsToUser(
+        int $telegram_id,
+        string $tag
+    ): bool
+    {
+
+        return $this->userPlayers
+            ->belongsToUser(
+                $telegram_id,
+                $tag
+            );
+
+    }
+
+
+
+
+
+    // =====================================
+    // ПРИВЯЗАТЬ АККАУНТ
+    // =====================================
 
     public function link(
         int $telegram_id,
@@ -116,7 +170,9 @@ class PlayerService
 
 
 
-    // Сделать основным
+    // =====================================
+    // СДЕЛАТЬ ОСНОВНЫМ
+    // =====================================
 
     public function setMain(
         int $telegram_id,
@@ -131,5 +187,28 @@ class PlayerService
             );
 
     }
+
+
+
+
+
+    // =====================================
+    // УДАЛИТЬ АККАУНТ
+    // =====================================
+
+    public function unlink(
+        int $telegram_id,
+        string $tag
+    ): bool
+    {
+
+        return $this->userPlayers
+            ->delete(
+                $telegram_id,
+                $tag
+            );
+
+    }
+
 
 }

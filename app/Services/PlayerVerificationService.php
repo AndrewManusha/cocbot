@@ -5,6 +5,102 @@ class PlayerVerificationService
 {
 
 
+    // =====================================
+    // СОЗДАНИЕ ПРОВЕРКИ
+    // =====================================
+
+    public function create(
+        int $telegram_id,
+        string $player_tag
+    ): array
+    {
+
+        $player_tag =
+            normalizeTag(
+                $player_tag
+            );
+
+
+
+        if (
+            !playerRepository()
+                ->exists($player_tag)
+        ) {
+
+
+            $player =
+                getPlayerFromApi(
+                    $player_tag
+                );
+
+
+            if (!$player) {
+
+                return [
+
+                    'success' => false,
+
+                    'message' =>
+                        'Игрок с таким тегом не найден.'
+
+                ];
+
+            }
+
+        }
+
+
+
+        if (
+            userPlayerRepository()
+                ->exists($player_tag)
+        ) {
+
+            return [
+
+                'success' => false,
+
+                'message' =>
+                    'Этот аккаунт уже привязан к Telegram.'
+
+            ];
+
+        }
+
+
+
+        $labels =
+            generateVerificationLabels();
+
+
+
+        verificationRepository()
+            ->create(
+                $telegram_id,
+                $player_tag,
+                $labels
+            );
+
+
+
+        return [
+
+            'success' => true,
+
+            'labels' => $labels
+
+        ];
+
+    }
+
+
+
+
+
+    // =====================================
+    // ПРОВЕРКА АККАУНТА
+    // =====================================
+
     public function verify(
         int $telegram_id,
         string $player_tag,
@@ -25,6 +121,7 @@ class PlayerVerificationService
                 ->find(
                     $player_tag
                 );
+
 
 
         if (!$verification) {
@@ -63,6 +160,7 @@ class PlayerVerificationService
             getPlayerFromApi(
                 $player_tag
             );
+
 
 
         if (!$player) {

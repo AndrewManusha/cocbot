@@ -20,6 +20,10 @@ class AdminRepository
 
 
 
+    // =====================================
+    // ПРОВЕРКА АДМИНА
+    // =====================================
+
     public function isAdmin(
         int $telegramId
     ): bool
@@ -47,5 +51,39 @@ class AdminRepository
         return (bool)$stmt->fetch();
 
     }
+
+
+
+
+
+    // =====================================
+    // ПОЛУЧИТЬ ВСЕХ АДМИНОВ
+    // =====================================
+
+    public function all(): array
+    {
+
+        $stmt =
+            $this->db->query(
+                "
+
+                SELECT users.*
+
+                FROM users
+
+                INNER JOIN admins
+
+                ON users.telegram_id = admins.telegram_id
+
+                ORDER BY username
+
+                "
+            );
+
+
+        return $stmt->fetchAll();
+
+    }
+
 
 }

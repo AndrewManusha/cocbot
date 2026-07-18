@@ -60,6 +60,7 @@ class UserRepository
 
 
 
+
     // =====================================
     // ДОБАВИТЬ ПОЛЬЗОВАТЕЛЯ
     // =====================================
@@ -118,6 +119,7 @@ class UserRepository
 
 
 
+
     // =====================================
     // ОБНОВИТЬ АКТИВНОСТЬ
     // =====================================
@@ -151,6 +153,7 @@ class UserRepository
 
 
 
+
     // =====================================
     // ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
     // =====================================
@@ -166,6 +169,76 @@ class UserRepository
                 FROM users
 
                 ORDER BY joined_at ASC
+
+            ");
+
+
+
+        return $stmt->fetchAll();
+
+    }
+
+
+
+
+
+
+
+    // =====================================
+    // ПОЛЬЗОВАТЕЛИ БЕЗ АДМИНОВ
+    // =====================================
+
+    public function allWithoutAdmins(): array
+    {
+
+        $stmt =
+            $this->db->query("
+
+                SELECT users.*
+
+                FROM users
+
+                LEFT JOIN admins
+
+                ON users.telegram_id = admins.telegram_id
+
+                WHERE admins.telegram_id IS NULL
+
+                ORDER BY username
+
+            ");
+
+
+
+        return $stmt->fetchAll();
+
+    }
+
+
+
+
+    
+
+
+    // =====================================
+    // ПОЛЬЗОВАТЕЛИ АДМИНЫ
+    // =====================================
+
+    public function allAdmins(): array
+    {
+
+        $stmt =
+            $this->db->query("
+
+                SELECT users.*
+
+                FROM users
+
+                INNER JOIN admins
+
+                ON users.telegram_id = admins.telegram_id
+
+                ORDER BY username
 
             ");
 

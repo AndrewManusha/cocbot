@@ -63,32 +63,18 @@ function commandHelp($chat_id, $thread_id)
 function commandList($chat_id, $thread_id)
 {
 
-    global $db;
-
-
     $text =
         "📋 <b>КЛАН</b>\n\n";
 
 
 
-    $stmt = $db->query("
-
-        SELECT users.*
-
-        FROM users
-
-        INNER JOIN admins
-
-        ON users.telegram_id = admins.telegram_id
-
-        ORDER BY username
-
-    ");
-
-
+    // ===============================
+    // АДМИНЫ
+    // ===============================
 
     $admins =
-        $stmt->fetchAll();
+        userRepository()
+            ->allAdmins();
 
 
 
@@ -118,26 +104,14 @@ function commandList($chat_id, $thread_id)
 
 
 
-    $stmt = $db->query("
 
-        SELECT users.*
-
-        FROM users
-
-        LEFT JOIN admins
-
-        ON users.telegram_id = admins.telegram_id
-
-        WHERE admins.telegram_id IS NULL
-
-        ORDER BY username
-
-    ");
-
-
+    // ===============================
+    // УЧАСТНИКИ
+    // ===============================
 
     $users =
-        $stmt->fetchAll();
+        userRepository()
+            ->allWithoutAdmins();
 
 
 
@@ -153,6 +127,7 @@ function commandList($chat_id, $thread_id)
     }
     else {
 
+
         foreach ($users as $user) {
 
 
@@ -163,12 +138,17 @@ function commandList($chat_id, $thread_id)
 
             if (!empty($user['player_tag'])) {
 
+
                 $line .=
                     " <code>" .
-                    htmlspecialchars($user['player_tag']) .
+                    htmlspecialchars(
+                        $user['player_tag']
+                    )
+                    .
                     "</code>";
 
             }
+
 
 
             $text .=
@@ -177,6 +157,7 @@ function commandList($chat_id, $thread_id)
         }
 
     }
+
 
 
 

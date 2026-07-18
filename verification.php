@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/clash_api.php';
 require_once __DIR__ . '/player_verifications.php';

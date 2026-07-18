@@ -13,9 +13,6 @@ file_put_contents(
 require_once __DIR__ . '/app/bootstrap.php';
 
 
-// DATABASE
-
-require_once __DIR__ . '/database.php';
 
 
 // HELPERS

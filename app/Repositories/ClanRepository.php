@@ -166,4 +166,25 @@ class ClanRepository
     }
 
 
+
+
+
+
+
+    public function getTags(): array
+    {
+        $stmt =
+            $this->db->query("
+
+                SELECT tag
+
+                FROM clans
+
+            ");
+
+
+        return $stmt->fetchAll();
+    }
+
+
 }

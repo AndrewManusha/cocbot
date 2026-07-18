@@ -40,6 +40,8 @@ require_once __DIR__ . '/Services/ClanSyncService.php';
 
 require_once __DIR__ . '/Services/PlayerVerificationService.php';
 
+require_once __DIR__ . '/Services/UserService.php';
+
 
 
 
@@ -131,6 +133,11 @@ $GLOBALS['playerVerificationService'] =
 
 
 
+$GLOBALS['userService'] =
+    new UserService();
+
+
+
 $GLOBALS['router'] =
     new Router();
 
@@ -213,6 +220,13 @@ function clanSyncService(): ClanSyncService
 function playerVerificationService(): PlayerVerificationService
 {
     return $GLOBALS['playerVerificationService'];
+}
+
+
+
+function userService(): UserService
+{
+    return $GLOBALS['userService'];
 }
 
 

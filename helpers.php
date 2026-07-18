@@ -166,54 +166,8 @@ function getReplyUser($message)
 
 function registerUser($user)
 {
-
-    $exists =
-        userRepository()->find(
-            $user['id']
-        );
-
-
-    if (!$exists) {
-
-
-        userRepository()->create([
-
-            'telegram_id' =>
-                $user['id'],
-
-            'username' =>
-                $user['username'] ?? '',
-
-            'first_name' =>
-                $user['first_name'] ?? '',
-
-            'last_name' =>
-                $user['last_name'] ?? ''
-
-        ]);
-
-
-        writeLog(
-            "Добавлен пользователь " .
-            (
-                $user['username']
-                ??
-                $user['id']
-            )
-        );
-
-
-    }
-    else {
-
-
-        userRepository()->updateActivity(
-            $user['id']
-        );
-
-
-    }
-
+    userService()
+        ->register($user);
 }
 
 

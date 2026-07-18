@@ -40,12 +40,17 @@ class VerifyCallback
 
 
 
-        verifyPlayerAccount(
-            $telegramId,
-            $playerTag,
-            $chatId,
-            $threadId
-        );
+
+
+        playerVerificationService()
+            ->verify(
+                $telegramId,
+                $playerTag,
+                $chatId,
+                $threadId
+            );
+
+
 
 
 

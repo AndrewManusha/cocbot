@@ -19,6 +19,8 @@ require_once __DIR__ . '/Repositories/UserRepository.php';
 
 require_once __DIR__ . '/Repositories/PlayerRepository.php';
 
+require_once __DIR__ . '/Repositories/AdminRepository.php';
+
 
 
 
@@ -84,6 +86,11 @@ $GLOBALS['playerRepository'] =
 
 
 
+$GLOBALS['adminRepository'] =
+    new AdminRepository();
+
+
+
 $GLOBALS['telegram'] =
     new TelegramService();
 
@@ -121,6 +128,13 @@ function userRepository(): UserRepository
 function playerRepository(): PlayerRepository
 {
     return $GLOBALS['playerRepository'];
+}
+
+
+
+function adminRepository(): AdminRepository
+{
+    return $GLOBALS['adminRepository'];
 }
 
 

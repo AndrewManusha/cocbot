@@ -96,10 +96,77 @@ class UserPlayerRepository
 
 
     // =====================================
+    // ПОЛУЧИТЬ АККАУНТ ПО TAG
+    // =====================================
+
+    public function getByTag(
+        string $player_tag
+    ): ?array
+    {
+
+        $player_tag =
+            normalizeTag($player_tag);
+
+
+
+        $stmt = $this->db->prepare("
+
+            SELECT *
+
+            FROM user_players
+
+            WHERE player_tag = ?
+
+            LIMIT 1
+
+        ");
+
+
+
+        $stmt->execute([
+            $player_tag
+        ]);
+
+
+
+        $result =
+            $stmt->fetch();
+
+
+
+        return $result ?: null;
+
+    }
+
+
+
+
+
+    // =====================================
     // ПРОВЕРКА ПРИВЯЗКИ АККАУНТА
     // =====================================
 
     public function exists(
+        string $player_tag
+    ): bool
+    {
+
+        return $this->getByTag(
+            $player_tag
+        ) !== null;
+
+    }
+
+
+
+
+
+    // =====================================
+    // ПРОВЕРКА ПРИНАДЛЕЖНОСТИ ПОЛЬЗОВАТЕЛЮ
+    // =====================================
+
+    public function belongsToUser(
+        int $telegram_id,
         string $player_tag
     ): bool
     {
@@ -115,7 +182,9 @@ class UserPlayerRepository
 
             FROM user_players
 
-            WHERE player_tag = ?
+            WHERE telegram_id = ?
+
+            AND player_tag = ?
 
             LIMIT 1
 
@@ -124,8 +193,13 @@ class UserPlayerRepository
 
 
         $stmt->execute([
+
+            $telegram_id,
+
             $player_tag
+
         ]);
+
 
 
         return (bool)$stmt->fetchColumn();
@@ -183,7 +257,10 @@ class UserPlayerRepository
 
 
         $is_main =
-            ($count == 0) ? 1 : 0;
+            ($count == 0)
+            ? 1
+            : 0;
+
 
 
 
@@ -238,6 +315,20 @@ class UserPlayerRepository
 
         $player_tag =
             normalizeTag($player_tag);
+
+
+
+        if (
+            !$this->belongsToUser(
+                $telegram_id,
+                $player_tag
+            )
+        ) {
+
+            return false;
+
+        }
+
 
 
 
@@ -312,6 +403,47 @@ class UserPlayerRepository
             return false;
 
         }
+
+    }
+
+
+
+
+
+    // =====================================
+    // УДАЛИТЬ АККАУНТ
+    // =====================================
+
+    public function delete(
+        int $telegram_id,
+        string $player_tag
+    ): bool
+    {
+
+        $player_tag =
+            normalizeTag($player_tag);
+
+
+
+        $stmt = $this->db->prepare("
+
+            DELETE FROM user_players
+
+            WHERE telegram_id = ?
+
+            AND player_tag = ?
+
+        ");
+
+
+
+        return $stmt->execute([
+
+            $telegram_id,
+
+            $player_tag
+
+        ]);
 
     }
 

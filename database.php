@@ -5,15 +5,12 @@
 // USERS
 // =====================================
 
-
 function getUser($telegram_id)
 {
     return userRepository()->find(
         $telegram_id
     );
 }
-
-
 
 
 function addUser($data)
@@ -24,16 +21,12 @@ function addUser($data)
 }
 
 
-
-
 function updateUserActivity($telegram_id)
 {
     return userRepository()->updateActivity(
         $telegram_id
     );
 }
-
-
 
 
 function getUsers()
@@ -45,70 +38,14 @@ function getUsers()
 
 
 // =====================================
-// PLAYER TAG
-// =====================================
-
-
-function checkPlayerExistsInClan($player_tag)
-{
-    return true;
-}
-
-
-
-
-function setPlayerTag(
-    $telegram_id,
-    $player_tag
-)
-{
-
-    $player_tag =
-        strtoupper(
-            trim(
-                $player_tag
-            )
-        );
-
-
-    $player_tag =
-        ltrim(
-            $player_tag,
-            '#'
-        );
-
-
-
-    if (!checkPlayerExistsInClan($player_tag)) {
-
-        return false;
-
-    }
-
-
-
-    return playerRepository()->setUserTag(
-        $telegram_id,
-        $player_tag
-    );
-
-}
-
-
-
-
-// =====================================
 // PLAYERS
 // =====================================
 
-
 function playerExists($player_tag)
 {
-
     return playerRepository()->exists(
         $player_tag
     );
-
 }
 
 
@@ -118,12 +55,9 @@ function playerExists($player_tag)
 // ADMINS
 // =====================================
 
-
 function isAdmin($telegram_id)
 {
-
     return adminRepository()->isAdmin(
         $telegram_id
     );
-
 }

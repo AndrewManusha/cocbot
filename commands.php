@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/helpers.php';
-require_once __DIR__ . '/clans.php';
 require_once __DIR__ . '/clash_api.php';
 require_once __DIR__ . '/user_players.php';
 require_once __DIR__ . '/player_verifications.php';
@@ -205,12 +204,11 @@ function commandTag(
 
 
 
-    // Проверяем есть ли игрок в нашей базе
+    if (
+        !playerRepository()
+            ->exists($tag)
+    ) {
 
-    if (!playerExists($tag)) {
-
-
-        // Если нет — проверяем через API
 
         $player =
             getPlayerFromApi($tag);
@@ -233,8 +231,6 @@ function commandTag(
 
 
 
-    // Проверяем, не привязан ли уже аккаунт
-
     if (hasUserPlayer($tag)) {
 
         sendMessage(
@@ -249,14 +245,10 @@ function commandTag(
 
 
 
-    // Генерируем 3 случайных labels
-
     $verification =
         generateVerificationLabels();
 
 
-
-    // Создаём временную проверку
 
     createVerification(
         $from_id,
@@ -291,8 +283,6 @@ function commandTag(
 
 
 
-
-
     sendMessageWithButton(
         $chat_id,
         $thread_id,
@@ -316,7 +306,10 @@ function commandAnnouncement(
 )
 {
 
-    if (!isAdmin($from_id)) {
+    if (
+        !adminRepository()
+            ->isAdmin($from_id)
+    ) {
 
         sendMessage(
             $chat_id,
@@ -331,7 +324,8 @@ function commandAnnouncement(
 
 
     $users =
-        getUsers();
+        userRepository()
+            ->all();
 
 
 
@@ -393,7 +387,10 @@ function commandAddClan($message, $args)
 
 
 
-    if (!isAdmin($from_id)) {
+    if (
+        !adminRepository()
+            ->isAdmin($from_id)
+    ) {
 
         sendMessage(
             $chat_id,
@@ -426,7 +423,10 @@ function commandAddClan($message, $args)
 
 
 
-    if (clanExists($tag)) {
+    if (
+        clanRepository()
+            ->exists($tag)
+    ) {
 
         sendMessage(
             $chat_id,
@@ -459,7 +459,10 @@ function commandAddClan($message, $args)
 
 
 
-    if (addClan($clan)) {
+    if (
+        clanRepository()
+            ->create($clan)
+    ) {
 
 
         sendMessage(
@@ -488,6 +491,7 @@ function commandAddClan($message, $args)
 }
 
 
+
 // =====================================
 // !КЛАН
 // =====================================
@@ -495,7 +499,10 @@ function commandAddClan($message, $args)
 function commandClans($chat_id, $thread_id)
 {
 
-    $clans = getClans();
+    $clans =
+        clanRepository()
+            ->all();
+
 
 
     if (!$clans) {

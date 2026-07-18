@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/helpers.php';
-require_once __DIR__ . '/clans.php';
+require_once __DIR__ . '/clash_api.php';
 
 
 // =====================================
@@ -25,7 +25,7 @@ function commandHelp($chat_id, $thread_id)
 
 !тег #TAG
 
-Указать свой Clash of Clans тег
+Привязать Clash аккаунт
 
 
 
@@ -53,6 +53,7 @@ function commandHelp($chat_id, $thread_id)
 
 
 
+
 // =====================================
 // СПИСОК ИГРОКОВ
 // =====================================
@@ -64,10 +65,6 @@ function commandList($chat_id, $thread_id)
         "📋 <b>КЛАН</b>\n\n";
 
 
-
-    // ===============================
-    // АДМИНЫ
-    // ===============================
 
     $admins =
         userRepository()
@@ -102,10 +99,6 @@ function commandList($chat_id, $thread_id)
 
 
 
-    // ===============================
-    // УЧАСТНИКИ
-    // ===============================
-
     $users =
         userRepository()
             ->allWithoutAdmins();
@@ -133,16 +126,28 @@ function commandList($chat_id, $thread_id)
 
 
 
-            if (!empty($user['player_tag'])) {
+            $players =
+                userPlayerRepository()
+                    ->getByUser(
+                        $user['telegram_id']
+                    );
 
 
-                $line .=
-                    " <code>" .
-                    htmlspecialchars(
-                        $user['player_tag']
-                    )
-                    .
-                    "</code>";
+
+            if ($players) {
+
+                foreach ($players as $player) {
+
+                    $line .=
+                        " <code>#"
+                        .
+                        htmlspecialchars(
+                            $player['player_tag']
+                        )
+                        .
+                        "</code>";
+
+                }
 
             }
 
@@ -157,7 +162,6 @@ function commandList($chat_id, $thread_id)
 
 
 
-
     sendLongMessage(
         $chat_id,
         $thread_id,
@@ -165,6 +169,7 @@ function commandList($chat_id, $thread_id)
     );
 
 }
+
 
 
 
@@ -183,9 +188,13 @@ function commandTag(
     $tag =
         normalizeTag(
             trim(
-                implode(" ", $args)
+                implode(
+                    " ",
+                    $args
+                )
             )
         );
+
 
 
     if ($tag == '') {
@@ -199,6 +208,7 @@ function commandTag(
         return;
 
     }
+
 
 
 
@@ -229,7 +239,11 @@ function commandTag(
 
 
 
-    if (hasUserPlayer($tag)) {
+
+    if (
+        userPlayerRepository()
+            ->exists($tag)
+    ) {
 
         sendMessage(
             $chat_id,
@@ -243,16 +257,21 @@ function commandTag(
 
 
 
+
     $verification =
         generateVerificationLabels();
 
 
 
-    createVerification(
-        $from_id,
-        $tag,
-        $verification
-    );
+
+    verificationRepository()
+        ->create(
+            $from_id,
+            $tag,
+            $verification
+        );
+
+
 
 
 
@@ -268,8 +287,10 @@ function commandTag(
     foreach ($verification['names'] as $name) {
 
         $text .=
-            "🏷 " .
-            htmlspecialchars($name) .
+            "🏷 "
+            .
+            htmlspecialchars($name)
+            .
             "\n";
 
     }
@@ -278,6 +299,8 @@ function commandTag(
 
     $text .=
         "\nПосле установки нажмите кнопку ниже.";
+
+
 
 
 
@@ -290,6 +313,8 @@ function commandTag(
     );
 
 }
+
+
 
 
 
@@ -321,9 +346,11 @@ function commandAnnouncement(
 
 
 
+
     $users =
         userRepository()
             ->all();
+
 
 
 
@@ -341,14 +368,17 @@ function commandAnnouncement(
 
 
 
+
     $mentions = "";
+
 
 
     foreach ($users as $user) {
 
         $mentions .=
             mentionUser($user)
-            . " ";
+            .
+            " ";
 
     }
 
@@ -357,11 +387,14 @@ function commandAnnouncement(
     sendMessage(
         $chat_id,
         $thread_id,
-        "📢 <b>ОБЩЕЕ ОБЪЯВЛЕНИЕ</b>\n\n" .
+        "📢 <b>ОБЩЕЕ ОБЪЯВЛЕНИЕ</b>\n\n"
+        .
         trim($mentions)
     );
 
 }
+
+
 
 
 
@@ -377,11 +410,13 @@ function commandAddClan($message, $args)
 
     $thread_id =
         $message['message_thread_id']
-        ?? null;
+        ??
+        null;
 
 
     $from_id =
         $message['from']['id'];
+
 
 
 
@@ -402,6 +437,7 @@ function commandAddClan($message, $args)
 
 
 
+
     if (empty($args[0])) {
 
         sendMessage(
@@ -416,8 +452,12 @@ function commandAddClan($message, $args)
 
 
 
+
     $tag =
-        normalizeTag($args[0]);
+        normalizeTag(
+            $args[0]
+        );
+
 
 
 
@@ -438,8 +478,10 @@ function commandAddClan($message, $args)
 
 
 
+
     $clan =
         getClanFromApi($tag);
+
 
 
 
@@ -457,6 +499,7 @@ function commandAddClan($message, $args)
 
 
 
+
     if (
         clanRepository()
             ->create($clan)
@@ -467,9 +510,12 @@ function commandAddClan($message, $args)
             $chat_id,
             $thread_id,
 
-            "✅ Клан добавлен:\n\n" .
-            "🏰 {$clan['name']}\n" .
-            "🎯 Уровень: {$clan['clanLevel']}\n" .
+            "✅ Клан добавлен:\n\n"
+            .
+            "🏰 {$clan['name']}\n"
+            .
+            "🎯 Уровень: {$clan['clanLevel']}\n"
+            .
             "👥 Участников: {$clan['members']}"
         );
 
@@ -487,6 +533,8 @@ function commandAddClan($message, $args)
     }
 
 }
+
+
 
 
 
@@ -516,28 +564,37 @@ function commandClans($chat_id, $thread_id)
     }
 
 
+
+
     $text =
         "🏰 <b>КЛАНЫ</b>\n\n";
 
 
-    $text .=
-        "Всего: <b>" . count($clans) . "</b>\n\n";
-
 
     foreach ($clans as $clan) {
 
-
         $text .=
-            "🏰 <b>" .
-            htmlspecialchars($clan['name']) .
+            "🏰 <b>"
+            .
+            htmlspecialchars(
+                $clan['name']
+            )
+            .
             "</b>\n";
 
+
         $text .=
-            "<code>#" .
-            htmlspecialchars($clan['tag']) .
+            "<code>#"
+            .
+            htmlspecialchars(
+                $clan['tag']
+            )
+            .
             "</code>\n\n";
 
     }
+
+
 
 
     sendMessage(
@@ -550,6 +607,8 @@ function commandClans($chat_id, $thread_id)
 
 
 
+
+
 // =====================================
 // ОБРАБОТКА КОМАНД
 // =====================================
@@ -558,7 +617,11 @@ function processCommand($message)
 {
 
     $text =
-        trim($message['text'] ?? '');
+        trim(
+            $message['text']
+            ??
+            ''
+        );
 
 
 
@@ -581,17 +644,24 @@ function processCommand($message)
     $chat_id =
         $message['chat']['id'];
 
+
     $thread_id =
         $message['message_thread_id']
-        ?? null;
+        ??
+        null;
+
 
     $from_id =
         $message['from']['id'];
 
 
 
+
     $parts =
-        explode(" ", $text);
+        explode(
+            " ",
+            $text
+        );
 
 
 
@@ -614,11 +684,11 @@ function processCommand($message)
 
 
 
+
     switch ($command) {
 
 
         case "помощь":
-
         case "команды":
 
             commandHelp(
@@ -631,7 +701,6 @@ function processCommand($message)
 
 
         case "список":
-
         case "игроки":
 
             commandList(
@@ -657,7 +726,6 @@ function processCommand($message)
 
 
         case "объявление":
-
         case "обьявление":
 
             commandAnnouncement(
@@ -675,16 +743,24 @@ function processCommand($message)
             if (
                 isset($args[0])
                 &&
-                mb_strtolower($args[0]) == "добавить"
+                mb_strtolower($args[0])
+                ==
+                "добавить"
             ) {
+
 
                 commandAddClan(
                     $message,
-                    array_slice($args, 1)
+                    array_slice(
+                        $args,
+                        1
+                    )
                 );
+
 
             }
             else {
+
 
                 commandClans(
                     $chat_id,

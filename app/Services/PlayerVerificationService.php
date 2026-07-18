@@ -4,6 +4,26 @@
 class PlayerVerificationService
 {
 
+    private VerificationRepository $verifications;
+    private UserPlayerRepository $players;
+
+
+
+    public function __construct()
+    {
+
+        $this->verifications =
+            verificationRepository();
+
+
+        $this->players =
+            userPlayerRepository();
+
+    }
+
+
+
+
 
     // =====================================
     // СОЗДАНИЕ ПРОВЕРКИ
@@ -11,85 +31,17 @@ class PlayerVerificationService
 
     public function create(
         int $telegram_id,
-        string $player_tag
-    ): array
+        string $player_tag,
+        array $labels
+    ): bool
     {
 
-        $player_tag =
-            normalizeTag(
-                $player_tag
-            );
-
-
-
-        if (
-            !playerRepository()
-                ->exists($player_tag)
-        ) {
-
-
-            $player =
-                getPlayerFromApi(
-                    $player_tag
-                );
-
-
-            if (!$player) {
-
-                return [
-
-                    'success' => false,
-
-                    'message' =>
-                        'Игрок с таким тегом не найден.'
-
-                ];
-
-            }
-
-        }
-
-
-
-        if (
-            userPlayerRepository()
-                ->exists($player_tag)
-        ) {
-
-            return [
-
-                'success' => false,
-
-                'message' =>
-                    'Этот аккаунт уже привязан к Telegram.'
-
-            ];
-
-        }
-
-
-
-        $labels =
-            generateVerificationLabels();
-
-
-
-        verificationRepository()
+        return $this->verifications
             ->create(
                 $telegram_id,
                 $player_tag,
                 $labels
             );
-
-
-
-        return [
-
-            'success' => true,
-
-            'labels' => $labels
-
-        ];
 
     }
 
@@ -117,7 +69,7 @@ class PlayerVerificationService
 
 
         $verification =
-            verificationRepository()
+            $this->verifications
                 ->find(
                     $player_tag
                 );
@@ -138,6 +90,8 @@ class PlayerVerificationService
 
 
 
+
+
         if (
             (int)$verification['telegram_id']
             !==
@@ -153,6 +107,8 @@ class PlayerVerificationService
             return;
 
         }
+
+
 
 
 
@@ -177,6 +133,8 @@ class PlayerVerificationService
 
 
 
+
+
         if (
             !checkPlayerVerificationLabels(
                 $player,
@@ -196,8 +154,10 @@ class PlayerVerificationService
 
 
 
+
+
         if (
-            !userPlayerRepository()
+            !$this->players
                 ->create(
                     $telegram_id,
                     $player_tag
@@ -216,10 +176,14 @@ class PlayerVerificationService
 
 
 
-        verificationRepository()
+
+
+        $this->verifications
             ->delete(
                 $player_tag
             );
+
+
 
 
 
@@ -228,11 +192,13 @@ class PlayerVerificationService
             $thread_id,
             "✅ Аккаунт успешно подтверждён!\n\n" .
             "🎮 Тег: <code>#" .
-            htmlspecialchars($player_tag) .
+            htmlspecialchars(
+                $player_tag
+            )
+            .
             "</code>"
         );
 
     }
-
 
 }

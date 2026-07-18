@@ -1,8 +1,6 @@
 <?php
 
 
-
-
 // =====================================
 // ЛОГИРОВАНИЕ
 // =====================================
@@ -23,6 +21,7 @@ function writeLog($text)
 
 
 
+
 // =====================================
 // ОТПРАВКА TELEGRAM MESSAGE
 // =====================================
@@ -39,6 +38,7 @@ function sendMessage(
         $text
     );
 }
+
 
 
 
@@ -72,6 +72,7 @@ function sendLongMessage(
     }
 
 }
+
 
 
 
@@ -183,7 +184,7 @@ function registerUser($user)
 {
 
     $exists =
-        getUser(
+        userRepository()->find(
             $user['id']
         );
 
@@ -192,7 +193,7 @@ function registerUser($user)
     if (!$exists) {
 
 
-        addUser([
+        userRepository()->create([
 
             'telegram_id' =>
                 $user['id'],
@@ -224,7 +225,7 @@ function registerUser($user)
     else {
 
 
-        updateUserActivity(
+        userRepository()->updateActivity(
             $user['id']
         );
 

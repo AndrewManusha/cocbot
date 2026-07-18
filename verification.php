@@ -2,8 +2,6 @@
 
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/clash_api.php';
-require_once __DIR__ . '/player_verifications.php';
-require_once __DIR__ . '/user_players.php';
 
 
 
@@ -21,15 +19,20 @@ function verifyPlayerAccount(
 {
 
     $player_tag =
-        normalizeTag($player_tag);
+        normalizeTag(
+            $player_tag
+        );
+
 
 
     // Получаем активную проверку
 
     $verification =
-        getVerification(
-            $player_tag
-        );
+        verificationRepository()
+            ->find(
+                $player_tag
+            );
+
 
 
     if (!$verification) {
@@ -45,10 +48,14 @@ function verifyPlayerAccount(
     }
 
 
-    // Проверяем, что проверка принадлежит этому пользователю
+
+
+    // Проверяем владельца проверки
 
     if (
-        $verification['telegram_id'] != $telegram_id
+        $verification['telegram_id']
+        !=
+        $telegram_id
     ) {
 
         sendMessage(
@@ -62,12 +69,15 @@ function verifyPlayerAccount(
     }
 
 
-    // Получаем данные игрока
+
+
+    // Получаем игрока из API
 
     $player =
         getPlayerFromApi(
             $player_tag
         );
+
 
 
     if (!$player) {
@@ -81,6 +91,8 @@ function verifyPlayerAccount(
         return;
 
     }
+
+
 
 
     // Проверяем labels
@@ -104,13 +116,16 @@ function verifyPlayerAccount(
     }
 
 
+
+
     // Добавляем аккаунт
 
     if (
-        !addUserPlayer(
-            $telegram_id,
-            $player_tag
-        )
+        !userPlayerRepository()
+            ->create(
+                $telegram_id,
+                $player_tag
+            )
     ) {
 
         sendMessage(
@@ -124,11 +139,17 @@ function verifyPlayerAccount(
     }
 
 
+
+
     // Удаляем проверку
 
-    deleteVerification(
-        $player_tag
-    );
+    verificationRepository()
+        ->delete(
+            $player_tag
+        );
+
+
+
 
 
     sendMessage(
@@ -136,7 +157,10 @@ function verifyPlayerAccount(
         $thread_id,
         "✅ Аккаунт успешно подтверждён!\n\n" .
         "🎮 Тег: <code>#" .
-        htmlspecialchars($player_tag) .
+        htmlspecialchars(
+            $player_tag
+        )
+        .
         "</code>"
     );
 

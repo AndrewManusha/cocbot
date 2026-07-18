@@ -23,7 +23,7 @@ function writeLog($text)
 
 
 // =====================================
-// ОТПРАВКА TELEGRAM MESSAGE
+// TELEGRAM MESSAGE
 // =====================================
 
 function sendMessage(
@@ -42,10 +42,6 @@ function sendMessage(
 
 
 
-
-// =====================================
-// ДЛИННЫЕ СООБЩЕНИЯ
-// =====================================
 
 function sendLongMessage(
     $chat_id,
@@ -77,10 +73,6 @@ function sendLongMessage(
 
 
 
-// =====================================
-// СООБЩЕНИЕ С КНОПКОЙ
-// =====================================
-
 function sendMessageWithButton(
     $chat_id,
     $thread_id,
@@ -111,10 +103,6 @@ function sendMessageWithButton(
 
 
 
-// =====================================
-// ОТВЕТ НА CALLBACK
-// =====================================
-
 function answerCallback(
     $callback_id,
     $text = ''
@@ -131,15 +119,15 @@ function answerCallback(
 
 
 // =====================================
-// ПОЛУЧИТЬ USER ИЗ REPLY
+// REPLY USER
 // =====================================
 
 function getReplyUser($message)
 {
 
     if (
-        !isset(
-            $message['reply_to_message']
+        empty(
+            $message['reply_to_message']['from']
         )
     ) {
 
@@ -148,10 +136,8 @@ function getReplyUser($message)
     }
 
 
-
     $user =
         $message['reply_to_message']['from'];
-
 
 
     return [
@@ -189,7 +175,6 @@ function registerUser($user)
         );
 
 
-
     if (!$exists) {
 
 
@@ -208,7 +193,6 @@ function registerUser($user)
                 $user['last_name'] ?? ''
 
         ]);
-
 
 
         writeLog(
@@ -239,7 +223,7 @@ function registerUser($user)
 
 
 // =====================================
-// ССЫЛКА НА USER
+// MENTION USER
 // =====================================
 
 function mentionUser($user)
@@ -249,7 +233,6 @@ function mentionUser($user)
         !empty($user['username'])
     ) {
 
-
         $name =
             '@' .
             ltrim(
@@ -257,16 +240,13 @@ function mentionUser($user)
                 '@'
             );
 
-
     }
     else {
-
 
         $name =
             $user['first_name']
             ??
             'Игрок';
-
 
     }
 
@@ -291,7 +271,7 @@ function mentionUser($user)
 
 
 // =====================================
-// ЛОГ ДЕЙСТВИЙ
+// ACTION LOG
 // =====================================
 
 function addLog(

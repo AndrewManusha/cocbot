@@ -10,6 +10,8 @@ require_once __DIR__ . '/../config.php';
 
 require_once __DIR__ . '/Database/Database.php';
 
+require_once __DIR__ . '/Repositories/UserRepository.php';
+
 
 
 // ===============================
@@ -57,6 +59,11 @@ $GLOBALS['database'] =
 
 
 
+$GLOBALS['userRepository'] =
+    new UserRepository();
+
+
+
 $GLOBALS['telegram'] =
     new TelegramService();
 
@@ -76,6 +83,13 @@ $GLOBALS['router'] =
 function database(): Database
 {
     return $GLOBALS['database'];
+}
+
+
+
+function userRepository(): UserRepository
+{
+    return $GLOBALS['userRepository'];
 }
 
 

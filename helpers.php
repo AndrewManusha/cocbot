@@ -242,3 +242,17 @@ function addLog(
     );
 
 }
+
+
+
+// =====================================
+// нормализация тега игрока/клана
+// =====================================
+
+
+function normalizeTag($tag)
+{
+    $tag = strtoupper(trim($tag));
+
+    return str_replace('#', '', $tag);
+}

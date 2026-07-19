@@ -111,9 +111,10 @@ class ClanService
 
 
         $clan =
-            getClanFromApi(
-                $tag
-            );
+            clashApi()
+                ->getClan(
+                    $tag
+                );
 
 
 

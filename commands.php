@@ -244,7 +244,10 @@ function commandTag(
 
 
         $player =
-            getPlayerFromApi($tag);
+            clashApi()
+                ->getPlayer(
+                    $tag
+                );
 
 
 
@@ -553,7 +556,10 @@ function commandAddClan($message, $args)
 
 
     $clan =
-        getClanFromApi($tag);
+        clashApi()
+            ->getClan(
+                $tag
+            );
 
 
 

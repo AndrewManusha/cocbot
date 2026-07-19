@@ -12,6 +12,13 @@ require_once __DIR__ . '/Database/Database.php';
 
 
 // ===============================
+// API
+// ===============================
+
+require_once __DIR__ . '/API/ClashApi.php';
+
+
+// ===============================
 // REPOSITORIES
 // ===============================
 
@@ -89,8 +96,15 @@ require_once __DIR__ . '/Router/Router.php';
 // INSTANCES
 // ===============================
 
+
 $GLOBALS['database'] =
     new Database();
+
+
+
+$GLOBALS['clashApi'] =
+    new ClashApi();
+
 
 
 
@@ -124,6 +138,8 @@ $GLOBALS['verificationRepository'] =
 
 
 
+
+
 $GLOBALS['telegram'] =
     new TelegramService();
 
@@ -153,6 +169,7 @@ $GLOBALS['playerService'] =
     new PlayerService();
 
 
+
 $GLOBALS['adminService'] =
     new AdminService();
 
@@ -174,6 +191,13 @@ $GLOBALS['router'] =
 function database(): Database
 {
     return $GLOBALS['database'];
+}
+
+
+
+function clashApi(): ClashApi
+{
+    return $GLOBALS['clashApi'];
 }
 
 

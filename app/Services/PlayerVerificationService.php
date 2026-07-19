@@ -113,9 +113,10 @@ class PlayerVerificationService
 
 
         $player =
-            getPlayerFromApi(
-                $player_tag
-            );
+            clashApi()
+                ->getPlayer(
+                    $player_tag
+                );
 
 
 

@@ -34,9 +34,10 @@ class ClanSyncService
 
 
         $members =
-            getClanMembersFromApi(
-                $clanTag
-            );
+            clashApi()
+                ->getClanMembers(
+                    $clanTag
+                );
 
 
 

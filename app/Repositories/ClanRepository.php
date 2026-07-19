@@ -21,39 +21,12 @@ class ClanRepository
 
 
     /**
-     * Нормализация тега клана
-     */
-    public function normalizeTag($tag): string
-    {
-
-        $tag =
-            strtoupper(
-                trim($tag)
-            );
-
-
-        return str_replace(
-            '#',
-            '',
-            $tag
-        );
-
-    }
-
-
-
-
-
-    /**
      * Проверка существования клана
      */
     public function exists($tag): bool
     {
 
-        $tag =
-            $this->normalizeTag(
-                $tag
-            );
+        $tag = normalizeTag($tag);
 
 
         $stmt =
@@ -119,9 +92,7 @@ class ClanRepository
 
         return $stmt->execute([
 
-            $this->normalizeTag(
-                $clan['tag']
-            ),
+            normalizeTag($clan['tag']),
 
             $clan['name'],
 

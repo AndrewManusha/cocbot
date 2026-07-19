@@ -20,12 +20,6 @@ require_once __DIR__ . '/app/bootstrap.php';
 require_once __DIR__ . '/helpers.php';
 
 
-// BOT LOGIC
-
-// require_once __DIR__ . '/commands.php';
-
-
-
 // UPDATE
 
 $content =

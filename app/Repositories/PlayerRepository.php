@@ -26,10 +26,7 @@ class PlayerRepository
     public function exists(string $playerTag): bool
     {
 
-        $playerTag =
-            $this->normalizeTag(
-                $playerTag
-            );
+        $playerTag = normalizeTag($playerTag);
 
 
         $stmt =
@@ -70,10 +67,7 @@ class PlayerRepository
     ): bool
     {
 
-        $playerTag =
-            $this->normalizeTag(
-                $playerTag
-            );
+        $playerTag = normalizeTag($playerTag);
 
 
 
@@ -109,33 +103,6 @@ class PlayerRepository
             $telegramId
 
         ]);
-
-    }
-
-
-
-
-    // =====================================
-    // НОРМАЛИЗАЦИЯ TAG
-    // =====================================
-
-    private function normalizeTag(
-        string $tag
-    ): string
-    {
-
-        return strtoupper(
-
-            trim(
-
-                ltrim(
-                    $tag,
-                    '#'
-                )
-
-            )
-
-        );
 
     }
 

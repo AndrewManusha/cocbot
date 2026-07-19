@@ -14,12 +14,6 @@ require_once __DIR__ . '/app/bootstrap.php';
 
 
 
-
-// HELPERS
-
-require_once __DIR__ . '/helpers.php';
-
-
 // UPDATE
 
 $content =

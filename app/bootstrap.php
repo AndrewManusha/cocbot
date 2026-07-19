@@ -91,6 +91,15 @@ require_once __DIR__ . '/Router/Router.php';
 
 
 
+// ===============================
+// COMMANDS
+// ===============================
+
+require_once __DIR__ . '/Commands/CommandRouter.php';
+
+
+
+
 
 // ===============================
 // INSTANCES
@@ -177,6 +186,11 @@ $GLOBALS['adminService'] =
 
 $GLOBALS['router'] =
     new Router();
+
+
+
+$GLOBALS['commandRouter'] =
+    new CommandRouter();
 
 
 
@@ -308,4 +322,12 @@ function message(): Message
 function router(): Router
 {
     return $GLOBALS['router'];
+}
+
+
+
+
+function commandRouter(): CommandRouter
+{
+    return $GLOBALS['commandRouter'];
 }

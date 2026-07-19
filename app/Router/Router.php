@@ -105,9 +105,10 @@ class Router
 
 
 
-        processCommand(
-            $message
-        );
+        commandRouter()
+            ->handle(
+                $message
+            );
 
 
     }

@@ -97,6 +97,16 @@ require_once __DIR__ . '/Router/Router.php';
 
 require_once __DIR__ . '/Commands/HelpCommand.php';
 
+require_once __DIR__ . '/Commands/ListCommand.php';
+
+require_once __DIR__ . '/Commands/TagCommand.php';
+
+require_once __DIR__ . '/Commands/AnnouncementCommand.php';
+
+require_once __DIR__ . '/Commands/ClanListCommand.php';
+
+require_once __DIR__ . '/Commands/ClanAddCommand.php';
+
 require_once __DIR__ . '/Commands/CommandRouter.php';
 
 

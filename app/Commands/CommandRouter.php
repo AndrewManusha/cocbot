@@ -91,15 +91,11 @@ class CommandRouter
             case "игроки":
 
 
-                commandList(
+                (new ListCommand())
+                    ->handle(
+                        $message
+                    );
 
-                    $message['chat']['id'],
-
-                    $message['message_thread_id']
-                    ??
-                    null
-
-                );
 
             break;
 
@@ -110,19 +106,11 @@ class CommandRouter
             case "тег":
 
 
-                commandTag(
+                (new TagCommand())
+                    ->handle(
+                        $message
+                    );
 
-                    $message['chat']['id'],
-
-                    $message['message_thread_id']
-                    ??
-                    null,
-
-                    $message['from']['id'],
-
-                    $args
-
-                );
 
             break;
 
@@ -135,17 +123,11 @@ class CommandRouter
             case "обьявление":
 
 
-                commandAnnouncement(
+                (new AnnouncementCommand())
+                    ->handle(
+                        $message
+                    );
 
-                    $message['chat']['id'],
-
-                    $message['message_thread_id']
-                    ??
-                    null,
-
-                    $message['from']['id']
-
-                );
 
             break;
 
@@ -172,34 +154,27 @@ class CommandRouter
                 ) {
 
 
-                    commandAddClan(
+                    (new ClanAddCommand())
+                        ->handle(
 
-                        $message,
+                            $message,
 
-                        array_slice(
+                            array_slice(
+                                $args,
+                                1
+                            )
 
-                            $args,
-
-                            1
-
-                        )
-
-                    );
+                        );
 
 
                 }
                 else {
 
 
-                    commandClans(
-
-                        $message['chat']['id'],
-
-                        $message['message_thread_id']
-                        ??
-                        null
-
-                    );
+                    (new ClanListCommand())
+                        ->handle(
+                            $message
+                        );
 
 
                 }

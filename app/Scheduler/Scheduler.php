@@ -1,10 +1,12 @@
 <?php
 
+
 require_once __DIR__ . '/../bootstrap.php';
 
 
+
 // =====================================
-// НАСТРОЙКИ
+// ФАЙЛЫ
 // =====================================
 
 $lockFile =
@@ -18,15 +20,34 @@ $stateFile =
 
 
 
+
 // =====================================
 // ЗАЩИТА ОТ ПАРАЛЛЕЛЬНОГО ЗАПУСКА
 // =====================================
 
 if (file_exists($lockFile)) {
 
-    exit;
+
+    $lockTime =
+        filemtime($lockFile);
+
+
+
+    // если старше 5 минут - считаем зависшим
+
+    if (
+        time() - $lockTime < 300
+    ) {
+
+        exit;
+
+    }
+
+
+    unlink($lockFile);
 
 }
+
 
 
 file_put_contents(
@@ -37,175 +58,263 @@ file_put_contents(
 
 
 
-// =====================================
-// ЗАГРУЗКА ЗАДАЧ
-// =====================================
 
-$tasks =
-    require __DIR__ . '/Tasks.php';
+try {
 
 
-
-$state = [];
-
-
-
-if (file_exists($stateFile)) {
-
-    $state =
-        json_decode(
-            file_get_contents($stateFile),
-            true
-        )
-        ??
-        [];
-
-}
+    writeLog(
+        "Scheduler started"
+    );
 
 
 
 
-// =====================================
-// ПЕРЕВОД 1m 10m 1h 1d В СЕКУНДЫ
-// =====================================
 
-function parseInterval(string $time): int
-{
+    // =====================================
+    // ЗАГРУЗКА ЗАДАЧ
+    // =====================================
 
-    $value =
-        (int)substr(
-            $time,
-            0,
-            -1
-        );
-
-
-    $unit =
-        substr(
-            $time,
-            -1
-        );
-
-
-
-    return match ($unit) {
-
-        'm' => $value * 60,
-
-        'h' => $value * 3600,
-
-        'd' => $value * 86400,
-
-        default => 0
-
-    };
-
-}
+    $tasks =
+        require __DIR__ . '/Tasks.php';
 
 
 
 
-// =====================================
-// ВЫПОЛНЕНИЕ ЗАДАЧ
-// =====================================
 
-$now =
-    time();
+    // =====================================
+    // СОСТОЯНИЕ
+    // =====================================
 
-
-
-foreach ($tasks as $name => $task) {
-
-
-    $interval =
-        parseInterval(
-            $task['interval']
-        );
-
-
-
-    if ($interval <= 0) {
-
-        continue;
-
-    }
-
-
-
-    $lastRun =
-        $state[$name]
-        ??
-        0;
+    $state = [];
 
 
 
     if (
-        ($now - $lastRun)
-        <
-        $interval
+        file_exists($stateFile)
     ) {
 
-        continue;
+
+        $state =
+            json_decode(
+                file_get_contents($stateFile),
+                true
+            )
+            ??
+            [];
 
     }
 
 
 
-    try {
 
 
-        call_user_func(
-            $task['handler']
+
+    // =====================================
+    // ПЕРЕВОД ИНТЕРВАЛОВ
+    // =====================================
+
+    function parseInterval(
+        string $time
+    ): int
+    {
+
+
+        preg_match(
+            '/(\d+)([smhd])/',
+            $time,
+            $matches
         );
 
 
 
-        $state[$name] =
-            $now;
+        if (!$matches) {
+
+            return 0;
+
+        }
 
 
 
-        writeLog(
-            "Scheduler task completed: " . $name
-        );
+        $value =
+            (int)$matches[1];
+
+
+
+        return match ($matches[2]) {
+
+
+            's' =>
+                $value,
+
+
+            'm' =>
+                $value * 60,
+
+
+            'h' =>
+                $value * 3600,
+
+
+            'd' =>
+                $value * 86400,
+
+
+            default =>
+                0
+
+        };
 
 
     }
-    catch (Throwable $e) {
 
 
-        writeLog(
-            "Scheduler error {$name}: "
-            .
-            $e->getMessage()
-        );
+
+
+
+
+
+    // =====================================
+    // ЗАПУСК ЗАДАЧ
+    // =====================================
+
+    $now =
+        time();
+
+
+
+
+
+    foreach (
+        $tasks as $name => $task
+    ) {
+
+
+
+        $interval =
+            parseInterval(
+                $task['interval']
+            );
+
+
+
+        if (
+            $interval <= 0
+        ) {
+
+            writeLog(
+                "Invalid interval: " . $name
+            );
+
+
+            continue;
+
+        }
+
+
+
+
+
+
+        $lastRun =
+            $state[$name]
+            ??
+            0;
+
+
+
+
+
+        if (
+            ($now - $lastRun)
+            <
+            $interval
+        ) {
+
+            continue;
+
+        }
+
+
+
+
+
+
+
+        try {
+
+
+            call_user_func(
+                $task['handler']
+            );
+
+
+
+            $state[$name] =
+                $now;
+
+
+
+
+
+            file_put_contents(
+                $stateFile,
+                json_encode(
+                    $state,
+                    JSON_PRETTY_PRINT
+                )
+            );
+
+
+
+
+
+            writeLog(
+                "Scheduler task completed: "
+                .
+                $name
+            );
+
+
+        }
+        catch (Throwable $e) {
+
+
+            writeLog(
+                "Scheduler task error "
+                .
+                $name
+                .
+                ": "
+                .
+                $e->getMessage()
+            );
+
+
+        }
+
 
 
     }
+
+
 
 
 }
+catch (Throwable $e) {
 
 
+    writeLog(
+        "Scheduler fatal error: "
+        .
+        $e->getMessage()
+    );
 
 
-// =====================================
-// СОХРАНЕНИЕ СОСТОЯНИЯ
-// =====================================
-
-file_put_contents(
-    $stateFile,
-    json_encode(
-        $state,
-        JSON_PRETTY_PRINT
-    )
-);
+}
+finally {
 
 
+    unlink($lockFile);
 
 
-// =====================================
-// СНЯТИЕ LOCK
-// =====================================
-
-unlink($lockFile);
+}

@@ -87,28 +87,13 @@ class TagCommand
                 )
         ) {
 
+            sendMessage(
+                $chat_id,
+                $thread_id,
+                "❌ Вы не являетесь участником клана или тег указан неверно."
+            );
 
-            $player =
-                clashApi()
-                    ->getPlayer(
-                        $tag
-                    );
-
-
-
-            if (!$player) {
-
-
-                sendMessage(
-                    $chat_id,
-                    $thread_id,
-                    "❌ Игрок не найден."
-                );
-
-
-                return;
-
-            }
+            return;
 
         }
 

@@ -95,6 +95,8 @@ require_once __DIR__ . '/Router/Router.php';
 // COMMANDS
 // ===============================
 
+require_once __DIR__ . '/Commands/HelpCommand.php';
+
 require_once __DIR__ . '/Commands/CommandRouter.php';
 
 

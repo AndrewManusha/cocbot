@@ -74,15 +74,11 @@ class CommandRouter
             case "команды":
 
 
-                commandHelp(
+                (new HelpCommand())
+                    ->handle(
+                        $message
+                    );
 
-                    $message['chat']['id'],
-
-                    $message['message_thread_id']
-                    ??
-                    null
-
-                );
 
             break;
 

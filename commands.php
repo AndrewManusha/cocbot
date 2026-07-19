@@ -293,8 +293,8 @@ function commandTag(
 
 
     $labels =
-        generateVerificationLabels();
-
+        playerVerificationService()
+            ->generateLabels();
 
 
 

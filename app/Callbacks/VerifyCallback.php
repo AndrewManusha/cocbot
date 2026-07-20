@@ -10,8 +10,29 @@ class VerifyCallback
     ): void
     {
 
+
         $data =
-            $callback['data'] ?? '';
+            $callback['data']
+            ??
+            '';
+
+
+
+
+
+        if (
+            !str_starts_with(
+                $data,
+                'verify_'
+            )
+        ) {
+
+            return;
+
+        }
+
+
+
 
 
 
@@ -24,15 +45,6 @@ class VerifyCallback
 
 
 
-        $chatId =
-            $callback['message']['chat']['id'];
-
-
-
-        $threadId =
-            $callback['message']['message_thread_id']
-            ?? null;
-
 
 
         $telegramId =
@@ -42,13 +54,22 @@ class VerifyCallback
 
 
 
+
+
+
+
         playerVerificationService()
             ->verify(
+
                 $telegramId,
-                $playerTag,
-                $chatId,
-                $threadId
+
+                $playerTag
+
             );
+
+
+
+
 
 
 
@@ -57,6 +78,7 @@ class VerifyCallback
         answerCallback(
             $callback['id']
         );
+
 
     }
 

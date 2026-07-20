@@ -15,14 +15,18 @@ class TagCommand
             $message['chat']['id'];
 
 
+
         $thread_id =
             $message['message_thread_id']
             ??
             null;
 
 
+
         $from_id =
             $message['from']['id'];
+
+
 
 
 
@@ -48,7 +52,7 @@ class TagCommand
 
 
 
-        $tag =
+        $inputTag =
             normalizeTag(
                 implode(
                     " ",
@@ -60,7 +64,7 @@ class TagCommand
 
 
 
-        if ($tag == '') {
+        if ($inputTag === '') {
 
 
             sendMessage(
@@ -80,18 +84,34 @@ class TagCommand
 
 
 
-        if (
-            !playerService()
-                ->exists(
-                    $tag
-                )
-        ) {
+
+
+        /*
+        =====================================
+        ПОЛУЧАЕМ ИГРОКА ЧЕРЕЗ API
+        =====================================
+        */
+
+
+        $player =
+            clashApi()
+                ->getPlayer(
+                    $inputTag
+                );
+
+
+
+
+
+        if (!$player) {
+
 
             sendMessage(
                 $chat_id,
                 $thread_id,
-                "❌ Вы не являетесь участником клана или тег указан неверно."
+                "❌ Игрок с таким тегом не найден."
             );
+
 
             return;
 
@@ -103,9 +123,38 @@ class TagCommand
 
 
 
+
+
+        /*
+        =====================================
+        БЕРЕМ НАСТОЯЩИЙ TAG ИЗ API
+        =====================================
+        */
+
+
+        $tag =
+            normalizeTag(
+                $player['tag']
+            );
+
+
+
+
+
+
+
+
+
+        /*
+        =====================================
+        ПРОВЕРКА ПРИВЯЗКИ
+        =====================================
+        */
+
+
         if (
-            playerService()
-                ->isLinked(
+            userPlayerRepository()
+                ->exists(
                     $tag
                 )
         ) {
@@ -128,6 +177,15 @@ class TagCommand
 
 
 
+
+
+        /*
+        =====================================
+        ГЕНЕРАЦИЯ LABELS
+        =====================================
+        */
+
+
         $labels =
             playerVerificationService()
                 ->generateLabels();
@@ -136,6 +194,15 @@ class TagCommand
 
 
 
+
+
+
+
+        /*
+        =====================================
+        СОЗДАНИЕ ПРОВЕРКИ
+        =====================================
+        */
 
 
         if (
@@ -165,12 +232,44 @@ class TagCommand
 
 
 
+
+
+        /*
+        =====================================
+        ТЕКСТ ПРОВЕРКИ
+        =====================================
+        */
+
+
         $text =
             "🔐 <b>Проверка аккаунта</b>\n\n";
 
 
+
         $text .=
-            "Установите метки:\n\n";
+            "👤 Игрок: <b>"
+            .
+            htmlspecialchars(
+                $player['name']
+            )
+            .
+            "</b>\n";
+
+
+
+        $text .=
+            "🎮 Тег: <code>#"
+            .
+            htmlspecialchars(
+                $tag
+            )
+            .
+            "</code>\n\n";
+
+
+
+        $text .=
+            "Установите следующие метки:\n\n";
 
 
 
@@ -199,20 +298,100 @@ class TagCommand
 
 
         $text .=
-            "\nПосле установки нажмите кнопку.";
+            "\nПосле установки нажмите кнопку проверки.";
 
 
 
 
 
 
-        sendMessageWithButton(
-            $chat_id,
-            $thread_id,
-            $text,
-            "✅ Готово",
-            "verify_" . $tag
-        );
+
+
+
+        /*
+        =====================================
+        ОТПРАВКА СООБЩЕНИЯ
+        =====================================
+        */
+
+
+        $response =
+            telegram()
+                ->sendMessage(
+                    $chat_id,
+                    $thread_id,
+                    $text,
+                    [
+
+                        'reply_markup' =>
+
+                            json_encode(
+
+                                [
+
+                                    'inline_keyboard' =>
+
+                                        [
+
+                                            [
+
+                                                [
+
+                                                    'text' =>
+                                                        '✅ Проверить',
+
+                                                    'callback_data' =>
+                                                        'verify_' . $tag
+
+                                                ]
+
+                                            ]
+
+                                        ]
+
+                                ],
+
+                                JSON_UNESCAPED_UNICODE
+
+                            )
+
+                    ]
+                );
+
+
+
+
+
+
+
+
+
+        /*
+        =====================================
+        СОХРАНЯЕМ MESSAGE ID
+        =====================================
+        */
+
+
+        if (
+            isset(
+                $response['result']['message_id']
+            )
+        ) {
+
+
+            playerVerificationService()
+                ->setMessage(
+
+                    $tag,
+
+                    $chat_id,
+
+                    $response['result']['message_id']
+
+                );
+
+        }
 
 
     }

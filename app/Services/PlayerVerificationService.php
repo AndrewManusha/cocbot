@@ -4,6 +4,7 @@
 class PlayerVerificationService
 {
 
+
     private VerificationRepository $verifications;
 
     private UserPlayerRepository $players;
@@ -21,6 +22,10 @@ class PlayerVerificationService
             userPlayerRepository();
 
     }
+
+
+
+
 
 
 
@@ -63,8 +68,12 @@ class PlayerVerificationService
 
 
 
+
+
+
+
     // =====================================
-    // ГЕНЕРАЦИЯ 3 LABELS
+    // ГЕНЕРАЦИЯ LABELS
     // =====================================
 
     public function generateLabels(): array
@@ -80,6 +89,7 @@ class PlayerVerificationService
                 $labels,
                 3
             );
+
 
 
         sort($ids);
@@ -109,8 +119,12 @@ class PlayerVerificationService
 
 
 
+
+
+
+
     // =====================================
-    // ПОЛУЧИТЬ LABEL IDS ИГРОКА
+    // ПОЛУЧИТЬ LABEL IDS
     // =====================================
 
     public function getPlayerLabelIds(
@@ -123,7 +137,9 @@ class PlayerVerificationService
 
 
         if (
-            empty($player['labels'])
+            empty(
+                $player['labels']
+            )
         ) {
 
             return $ids;
@@ -132,7 +148,12 @@ class PlayerVerificationService
 
 
 
-        foreach ($player['labels'] as $label) {
+
+
+        foreach (
+            $player['labels']
+            as $label
+        ) {
 
             $ids[] =
                 (int)$label['id'];
@@ -148,6 +169,10 @@ class PlayerVerificationService
         return $ids;
 
     }
+
+
+
+
 
 
 
@@ -198,6 +223,10 @@ class PlayerVerificationService
 
 
 
+
+
+
+
     // =====================================
     // СОЗДАНИЕ ПРОВЕРКИ
     // =====================================
@@ -222,22 +251,79 @@ class PlayerVerificationService
 
 
 
+
+
+
+
     // =====================================
-    // ПРОВЕРКА АККАУНТА
+    // СОХРАНИТЬ MESSAGE ID
+    // =====================================
+
+    public function setMessage(
+        string $player_tag,
+        int $chat_id,
+        int $message_id
+    ): bool
+    {
+
+        return $this->verifications
+            ->setMessage(
+                $player_tag,
+                $chat_id,
+                $message_id
+            );
+
+    }
+
+
+
+
+
+
+
+
+
+    // =====================================
+    // ПОЛУЧИТЬ ПРОВЕРКУ
+    // =====================================
+
+    public function get(
+        string $player_tag
+    ): ?array
+    {
+
+        return $this->verifications
+            ->find(
+                $player_tag
+            );
+
+    }
+
+
+
+
+
+
+
+
+
+    // =====================================
+    // ВЕРИФИКАЦИЯ
     // =====================================
 
     public function verify(
         int $telegram_id,
-        string $player_tag,
-        int $chat_id,
-        ?int $thread_id = null
+        string $player_tag
     ): void
     {
+
 
         $player_tag =
             normalizeTag(
                 $player_tag
             );
+
+
 
 
 
@@ -249,13 +335,9 @@ class PlayerVerificationService
 
 
 
-        if (!$verification) {
 
-            sendMessage(
-                $chat_id,
-                $thread_id,
-                "❌ Проверка не найдена или истекла."
-            );
+
+        if (!$verification) {
 
             return;
 
@@ -263,6 +345,17 @@ class PlayerVerificationService
 
 
 
+
+
+
+
+
+
+        /*
+        =====================================
+        ЗАЩИТА ОТ ЧУЖИХ НАЖАТИЙ
+        =====================================
+        */
 
 
         if (
@@ -271,18 +364,39 @@ class PlayerVerificationService
             $telegram_id
         ) {
 
-            sendMessage(
-                $chat_id,
-                $thread_id,
-                "❌ Эта проверка принадлежит другому пользователю."
-            );
-
             return;
 
         }
 
 
 
+
+
+
+
+
+
+        $chat_id =
+            (int)$verification['chat_id'];
+
+
+
+        $message_id =
+            (int)$verification['message_id'];
+
+
+
+
+
+
+
+
+
+        /*
+        =====================================
+        ПОЛУЧАЕМ ИГРОКА
+        =====================================
+        */
 
 
         $player =
@@ -293,13 +407,18 @@ class PlayerVerificationService
 
 
 
+
+
         if (!$player) {
 
-            sendMessage(
-                $chat_id,
-                $thread_id,
-                "❌ Не удалось получить данные игрока."
-            );
+
+            telegram()
+                ->editMessage(
+                    $chat_id,
+                    $message_id,
+                    "❌ Не удалось получить данные игрока."
+                );
+
 
             return;
 
@@ -307,6 +426,30 @@ class PlayerVerificationService
 
 
 
+
+
+
+
+
+
+        $player_tag =
+            normalizeTag(
+                $player['tag']
+            );
+
+
+
+
+
+
+
+
+
+        /*
+        =====================================
+        ПРОВЕРКА LABELS
+        =====================================
+        */
 
 
         if (
@@ -316,11 +459,19 @@ class PlayerVerificationService
             )
         ) {
 
-            sendMessage(
-                $chat_id,
-                $thread_id,
-                "❌ Метки пока не совпадают."
-            );
+
+            telegram()
+                ->editMessage(
+                    $chat_id,
+                    $message_id,
+
+                    "🔐 <b>Проверка аккаунта</b>\n\n" .
+
+                    "❌ Метки пока не совпадают.\n\n" .
+
+                    "Попробуйте повторить через минуту."
+                );
+
 
             return;
 
@@ -328,6 +479,53 @@ class PlayerVerificationService
 
 
 
+
+
+
+
+
+
+        /*
+        =====================================
+        СОХРАНЯЕМ ИГРОКА
+        =====================================
+        */
+
+
+        if (
+            !playerRepository()
+                ->sync(
+                    $player,
+                    CLAN_TAG
+                )
+        ) {
+
+
+            telegram()
+                ->editMessage(
+                    $chat_id,
+                    $message_id,
+                    "❌ Не удалось сохранить данные игрока."
+                );
+
+
+            return;
+
+        }
+
+
+
+
+
+
+
+
+
+        /*
+        =====================================
+        ПРИВЯЗЫВАЕМ К USER
+        =====================================
+        */
 
 
         if (
@@ -338,11 +536,14 @@ class PlayerVerificationService
                 )
         ) {
 
-            sendMessage(
-                $chat_id,
-                $thread_id,
-                "❌ Не удалось привязать аккаунт."
-            );
+
+            telegram()
+                ->editMessage(
+                    $chat_id,
+                    $message_id,
+                    "❌ Не удалось привязать аккаунт."
+                );
+
 
             return;
 
@@ -350,6 +551,17 @@ class PlayerVerificationService
 
 
 
+
+
+
+
+
+
+        /*
+        =====================================
+        УДАЛЯЕМ ПРОВЕРКУ
+        =====================================
+        */
 
 
         $this->verifications
@@ -361,18 +573,60 @@ class PlayerVerificationService
 
 
 
-        sendMessage(
-            $chat_id,
-            $thread_id,
-            "✅ Аккаунт успешно подтверждён!\n\n" .
-            "🎮 Тег: <code>#" .
-            htmlspecialchars(
-                $player_tag
-            )
-            .
-            "</code>"
-        );
+
+
+
+
+        /*
+        =====================================
+        ФИНАЛЬНОЕ СООБЩЕНИЕ
+        =====================================
+        */
+
+
+        telegram()
+            ->editMessage(
+                $chat_id,
+                $message_id,
+
+                "✅ <b>Аккаунт успешно привязан!</b>\n\n" .
+
+                "👤 Игрок: <b>" .
+                htmlspecialchars(
+                    $player['name']
+                )
+                .
+                "</b>\n" .
+
+                "🎮 Тег: <code>#".
+                htmlspecialchars(
+                    $player_tag
+                )
+                .
+                "</code>",
+
+                [
+
+                    'reply_markup' =>
+
+                        json_encode(
+
+                            [
+
+                                'inline_keyboard' => []
+
+                            ],
+
+                            JSON_UNESCAPED_UNICODE
+
+                        )
+
+                ]
+
+            );
+
 
     }
+
 
 }

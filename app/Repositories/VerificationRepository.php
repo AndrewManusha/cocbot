@@ -19,6 +19,8 @@ class VerificationRepository
 
 
 
+
+
     // =====================================
     // СОЗДАТЬ / ОБНОВИТЬ ПРОВЕРКУ
     // =====================================
@@ -31,11 +33,17 @@ class VerificationRepository
     {
 
         $player_tag =
-            normalizeTag($player_tag);
+            normalizeTag(
+                $player_tag
+            );
 
 
 
-        if (isset($labels['ids'])) {
+        if (
+            isset(
+                $labels['ids']
+            )
+        ) {
 
             $labels =
                 implode(
@@ -56,38 +64,51 @@ class VerificationRepository
 
 
 
-        $stmt = $this->db->prepare("
-
-            INSERT INTO player_verifications
-            (
-                player_tag,
-                telegram_id,
-                labels,
-                expires_at
-            )
-
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                DATE_ADD(NOW(), INTERVAL 5 MINUTE)
-            )
 
 
-            ON DUPLICATE KEY UPDATE
 
-                telegram_id = VALUES(telegram_id),
+        $stmt =
+            $this->db->prepare("
 
-                labels = VALUES(labels),
+                INSERT INTO player_verifications
+                (
+                    player_tag,
+                    telegram_id,
+                    labels,
+                    expires_at
+                )
 
-                expires_at =
+                VALUES
+                (
+                    ?,
+                    ?,
+                    ?,
                     DATE_ADD(
                         NOW(),
                         INTERVAL 5 MINUTE
                     )
+                )
 
-        ");
+
+                ON DUPLICATE KEY UPDATE
+
+                    telegram_id = VALUES(telegram_id),
+
+                    labels = VALUES(labels),
+
+                    expires_at =
+                        DATE_ADD(
+                            NOW(),
+                            INTERVAL 5 MINUTE
+                        ),
+
+                    chat_id = NULL,
+
+                    message_id = NULL
+
+            ");
+
+
 
 
 
@@ -107,6 +128,10 @@ class VerificationRepository
 
 
 
+
+
+
+
     // =====================================
     // ПОЛУЧИТЬ АКТИВНУЮ ПРОВЕРКУ
     // =====================================
@@ -117,23 +142,27 @@ class VerificationRepository
     {
 
         $player_tag =
-            normalizeTag($player_tag);
+            normalizeTag(
+                $player_tag
+            );
 
 
 
-        $stmt = $this->db->prepare("
+        $stmt =
+            $this->db->prepare("
 
-            SELECT *
+                SELECT *
 
-            FROM player_verifications
+                FROM player_verifications
 
-            WHERE player_tag = ?
+                WHERE player_tag = ?
 
-            AND expires_at >= NOW()
+                AND expires_at >= NOW()
 
-            LIMIT 1
+                LIMIT 1
 
-        ");
+            ");
+
 
 
 
@@ -142,6 +171,7 @@ class VerificationRepository
             $player_tag
 
         ]);
+
 
 
 
@@ -158,6 +188,66 @@ class VerificationRepository
 
 
 
+
+
+
+
+    // =====================================
+    // СОХРАНИТЬ ДАННЫЕ СООБЩЕНИЯ
+    // =====================================
+
+    public function setMessage(
+        string $player_tag,
+        int $chat_id,
+        int $message_id
+    ): bool
+    {
+
+        $player_tag =
+            normalizeTag(
+                $player_tag
+            );
+
+
+
+        $stmt =
+            $this->db->prepare("
+
+                UPDATE player_verifications
+
+                SET
+
+                    chat_id = ?,
+
+                    message_id = ?
+
+                WHERE player_tag = ?
+
+            ");
+
+
+
+
+        return $stmt->execute([
+
+            $chat_id,
+
+            $message_id,
+
+            $player_tag
+
+        ]);
+
+    }
+
+
+
+
+
+
+
+
+
     // =====================================
     // УДАЛИТЬ ПРОВЕРКУ
     // =====================================
@@ -168,17 +258,21 @@ class VerificationRepository
     {
 
         $player_tag =
-            normalizeTag($player_tag);
+            normalizeTag(
+                $player_tag
+            );
 
 
 
-        $stmt = $this->db->prepare("
+        $stmt =
+            $this->db->prepare("
 
-            DELETE FROM player_verifications
+                DELETE FROM player_verifications
 
-            WHERE player_tag = ?
+                WHERE player_tag = ?
 
-        ");
+            ");
+
 
 
 
@@ -194,6 +288,10 @@ class VerificationRepository
 
 
 
+
+
+
+
     // =====================================
     // ОЧИСТКА ПРОСРОЧЕННЫХ
     // =====================================
@@ -201,13 +299,15 @@ class VerificationRepository
     public function clearExpired(): bool
     {
 
-        $stmt = $this->db->prepare("
+        $stmt =
+            $this->db->prepare("
 
-            DELETE FROM player_verifications
+                DELETE FROM player_verifications
 
-            WHERE expires_at < NOW()
+                WHERE expires_at < NOW()
 
-        ");
+            ");
+
 
 
 

@@ -4,32 +4,32 @@
 class CallbackHandler
 {
 
-
     private VerifyCallback $verifyCallback;
-
 
 
     public function __construct()
     {
-
         $this->verifyCallback =
             new VerifyCallback();
-
     }
 
 
 
+    // =====================================
+    // МАРШРУТИЗАЦИЯ CALLBACK КНОПОК
+    // =====================================
 
-
-    public function handle(
-        array $callback
-    ): void
+    public function handle(array $callback): void
     {
 
         $data =
-            $callback['data'] ?? '';
+            $callback['data']
+            ??
+            '';
 
 
+
+        // Проверка аккаунта
 
         if (
             str_starts_with(
@@ -38,16 +38,11 @@ class CallbackHandler
             )
         ) {
 
-
             $this->verifyCallback->handle(
                 $callback
             );
 
-
-            return;
-
         }
-
 
     }
 

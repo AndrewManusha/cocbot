@@ -4,9 +4,7 @@
 class VerificationRepository
 {
 
-
     private PDO $db;
-
 
 
     public function __construct()
@@ -17,53 +15,26 @@ class VerificationRepository
 
 
 
-
-
-
-
     // =====================================
     // СОЗДАТЬ / ОБНОВИТЬ ПРОВЕРКУ
     // =====================================
 
     public function create(
-        int $telegram_id,
-        string $player_tag,
+        int $telegramId,
+        string $playerTag,
         array $labels
     ): bool
     {
 
-        $player_tag =
-            normalizeTag(
-                $player_tag
-            );
+        $playerTag =
+            normalizeTag($playerTag);
 
 
-
-        if (
-            isset(
+        $labels =
+            implode(
+                ',',
                 $labels['ids']
-            )
-        ) {
-
-            $labels =
-                implode(
-                    ',',
-                    $labels['ids']
-                );
-
-        }
-        else {
-
-            $labels =
-                implode(
-                    ',',
-                    $labels
-                );
-
-        }
-
-
-
+            );
 
 
 
@@ -83,41 +54,27 @@ class VerificationRepository
                     ?,
                     ?,
                     ?,
-                    DATE_ADD(
-                        NOW(),
-                        INTERVAL 5 MINUTE
-                    )
+                    DATE_ADD(NOW(), INTERVAL 5 MINUTE)
                 )
 
 
                 ON DUPLICATE KEY UPDATE
 
                     telegram_id = VALUES(telegram_id),
-
                     labels = VALUES(labels),
-
                     expires_at =
                         DATE_ADD(
                             NOW(),
                             INTERVAL 5 MINUTE
-                        ),
-
-                    chat_id = NULL,
-
-                    message_id = NULL
+                        )
 
             ");
 
 
-
-
-
         return $stmt->execute([
 
-            $player_tag,
-
-            $telegram_id,
-
+            $playerTag,
+            $telegramId,
             $labels
 
         ]);
@@ -126,9 +83,42 @@ class VerificationRepository
 
 
 
+    // =====================================
+    // СОХРАНИТЬ MESSAGE DATA
+    // =====================================
+
+    public function setMessage(
+        string $playerTag,
+        int $chatId,
+        int $messageId
+    ): bool
+    {
+
+        $stmt =
+            $this->db->prepare("
+
+                UPDATE player_verifications
+
+                SET
+
+                    chat_id = ?,
+
+                    message_id = ?
+
+                WHERE player_tag = ?
+
+            ");
 
 
+        return $stmt->execute([
 
+            $chatId,
+            $messageId,
+            normalizeTag($playerTag)
+
+        ]);
+
+    }
 
 
 
@@ -137,16 +127,9 @@ class VerificationRepository
     // =====================================
 
     public function find(
-        string $player_tag
+        string $playerTag
     ): ?array
     {
-
-        $player_tag =
-            normalizeTag(
-                $player_tag
-            );
-
-
 
         $stmt =
             $this->db->prepare("
@@ -165,13 +148,11 @@ class VerificationRepository
 
 
 
-
         $stmt->execute([
 
-            $player_tag
+            normalizeTag($playerTag)
 
         ]);
-
 
 
 
@@ -186,83 +167,14 @@ class VerificationRepository
 
 
 
-
-
-
-
-
-
-    // =====================================
-    // СОХРАНИТЬ ДАННЫЕ СООБЩЕНИЯ
-    // =====================================
-
-    public function setMessage(
-        string $player_tag,
-        int $chat_id,
-        int $message_id
-    ): bool
-    {
-
-        $player_tag =
-            normalizeTag(
-                $player_tag
-            );
-
-
-
-        $stmt =
-            $this->db->prepare("
-
-                UPDATE player_verifications
-
-                SET
-
-                    chat_id = ?,
-
-                    message_id = ?
-
-                WHERE player_tag = ?
-
-            ");
-
-
-
-
-        return $stmt->execute([
-
-            $chat_id,
-
-            $message_id,
-
-            $player_tag
-
-        ]);
-
-    }
-
-
-
-
-
-
-
-
-
     // =====================================
     // УДАЛИТЬ ПРОВЕРКУ
     // =====================================
 
     public function delete(
-        string $player_tag
+        string $playerTag
     ): bool
     {
-
-        $player_tag =
-            normalizeTag(
-                $player_tag
-            );
-
-
 
         $stmt =
             $this->db->prepare("
@@ -275,20 +187,13 @@ class VerificationRepository
 
 
 
-
         return $stmt->execute([
 
-            $player_tag
+            normalizeTag($playerTag)
 
         ]);
 
     }
-
-
-
-
-
-
 
 
 
@@ -307,8 +212,6 @@ class VerificationRepository
                 WHERE expires_at < NOW()
 
             ");
-
-
 
 
         return $stmt->execute();

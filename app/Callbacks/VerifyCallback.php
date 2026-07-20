@@ -10,13 +10,10 @@ class VerifyCallback
     ): void
     {
 
-
         $data =
             $callback['data']
             ??
             '';
-
-
 
 
 
@@ -33,10 +30,7 @@ class VerifyCallback
 
 
 
-
-
-
-        $playerTag =
+        $tag =
             str_replace(
                 'verify_',
                 '',
@@ -45,40 +39,22 @@ class VerifyCallback
 
 
 
-
-
         $telegramId =
             $callback['from']['id'];
 
 
 
-
-
-
-
-
-
         playerVerificationService()
             ->verify(
-
                 $telegramId,
-
-                $playerTag
-
+                $tag
             );
-
-
-
-
-
-
 
 
 
         answerCallback(
             $callback['id']
         );
-
 
     }
 

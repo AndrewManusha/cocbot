@@ -5,74 +5,43 @@ class TagCommand
 {
 
 
-    public function handle(
-        array $message
-    ): void
+    public function handle(array $message): void
     {
 
+        $chatId = $message['chat']['id'];
 
-        $chat_id =
-            $message['chat']['id'];
-
-
-
-        $thread_id =
+        $threadId =
             $message['message_thread_id']
-            ??
-            null;
+            ?? null;
 
-
-
-        $from_id =
+        $telegramId =
             $message['from']['id'];
 
 
 
-
+        // =====================================
+        // ПОЛУЧАЕМ ВВЕДЕННЫЙ TAG
+        // =====================================
 
         $parts =
             explode(
-                " ",
-                trim(
-                    $message['text']
-                    ??
-                    ''
-                )
+                ' ',
+                trim($message['text'] ?? '')
             );
-
-
-
-        $args =
-            array_slice(
-                $parts,
-                1
-            );
-
-
-
-
 
         $inputTag =
             normalizeTag(
-                implode(
-                    " ",
-                    $args
-                )
+                implode(' ', array_slice($parts, 1))
             );
-
-
-
 
 
         if ($inputTag === '') {
 
-
             sendMessage(
-                $chat_id,
-                $thread_id,
+                $chatId,
+                $threadId,
                 "❌ Использование:\n!тег #TAG"
             );
-
 
             return;
 
@@ -80,38 +49,21 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        ПОЛУЧАЕМ ИГРОКА ЧЕРЕЗ API
-        =====================================
-        */
-
+        // =====================================
+        // ПОЛУЧАЕМ ИГРОКА ИЗ API
+        // =====================================
 
         $player =
-            clashApi()
-                ->getPlayer(
-                    $inputTag
-                );
-
-
-
+            clashApi()->getPlayer($inputTag);
 
 
         if (!$player) {
 
-
             sendMessage(
-                $chat_id,
-                $thread_id,
+                $chatId,
+                $threadId,
                 "❌ Игрок с таким тегом не найден."
             );
-
 
             return;
 
@@ -119,18 +71,7 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        БЕРЕМ НАСТОЯЩИЙ TAG ИЗ API
-        =====================================
-        */
-
+        // Настоящий tag берем только из API
 
         $tag =
             normalizeTag(
@@ -139,33 +80,20 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        ПРОВЕРКА ПРИВЯЗКИ
-        =====================================
-        */
-
+        // =====================================
+        // ПРОВЕРКА ПРИВЯЗКИ
+        // =====================================
 
         if (
             userPlayerRepository()
-                ->exists(
-                    $tag
-                )
+                ->exists($tag)
         ) {
 
-
             sendMessage(
-                $chat_id,
-                $thread_id,
+                $chatId,
+                $threadId,
                 "⚠️ Этот аккаунт уже привязан."
             );
-
 
             return;
 
@@ -173,54 +101,29 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        ГЕНЕРАЦИЯ LABELS
-        =====================================
-        */
-
+        // =====================================
+        // СОЗДАЕМ ПРОВЕРКУ
+        // =====================================
 
         $labels =
             playerVerificationService()
                 ->generateLabels();
 
 
-
-
-
-
-
-
-
-        /*
-        =====================================
-        СОЗДАНИЕ ПРОВЕРКИ
-        =====================================
-        */
-
-
         if (
             !playerVerificationService()
                 ->create(
-                    $from_id,
+                    $telegramId,
                     $tag,
                     $labels
                 )
         ) {
 
-
             sendMessage(
-                $chat_id,
-                $thread_id,
+                $chatId,
+                $threadId,
                 "❌ Не удалось создать проверку."
             );
-
 
             return;
 
@@ -228,73 +131,37 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        ТЕКСТ ПРОВЕРКИ
-        =====================================
-        */
-
+        // =====================================
+        // СОЗДАЕМ СООБЩЕНИЕ ПРОВЕРКИ
+        // =====================================
 
         $text =
             "🔐 <b>Проверка аккаунта</b>\n\n";
 
-
-
         $text .=
             "👤 Игрок: <b>"
             .
-            htmlspecialchars(
-                $player['name']
-            )
+            htmlspecialchars($player['name'])
             .
             "</b>\n";
 
-
-
         $text .=
-            "🎮 Тег: <code>#"
-            .
-            htmlspecialchars(
-                $tag
-            )
-            .
-            "</code>\n\n";
-
-
+            "🎮 Тег: <code>#{$tag}</code>\n\n";
 
         $text .=
             "Установите следующие метки:\n\n";
 
 
-
-
-
-        foreach (
-            $labels['names']
-            as $name
-        ) {
-
+        foreach ($labels['names'] as $name) {
 
             $text .=
                 "🏷 "
                 .
-                htmlspecialchars(
-                    $name
-                )
+                htmlspecialchars($name)
                 .
                 "\n";
 
-
         }
-
-
-
 
 
         $text .=
@@ -302,97 +169,46 @@ class TagCommand
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        ОТПРАВКА СООБЩЕНИЯ
-        =====================================
-        */
-
-
         $response =
-            telegram()
-                ->sendMessage(
-                    $chat_id,
-                    $thread_id,
-                    $text,
-                    [
-
-                        'reply_markup' =>
-
-                            json_encode(
-
+            telegram()->sendMessage(
+                $chatId,
+                $threadId,
+                $text,
+                [
+                    'reply_markup' => json_encode(
+                        [
+                            'inline_keyboard' => [
                                 [
-
-                                    'inline_keyboard' =>
-
-                                        [
-
-                                            [
-
-                                                [
-
-                                                    'text' =>
-                                                        '✅ Проверить',
-
-                                                    'callback_data' =>
-                                                        'verify_' . $tag
-
-                                                ]
-
-                                            ]
-
-                                        ]
-
-                                ],
-
-                                JSON_UNESCAPED_UNICODE
-
-                            )
-
-                    ]
-                );
+                                    [
+                                        'text' => '✅ Проверить',
+                                        'callback_data' => 'verify_' . $tag
+                                    ]
+                                ]
+                            ]
+                        ],
+                        JSON_UNESCAPED_UNICODE
+                    )
+                ]
+            );
 
 
 
-
-
-
-
-
-
-        /*
-        =====================================
-        СОХРАНЯЕМ MESSAGE ID
-        =====================================
-        */
-
+        // =====================================
+        // СОХРАНЯЕМ MESSAGE ID
+        // =====================================
 
         if (
-            isset(
-                $response['result']['message_id']
-            )
+            isset($response['result']['message_id'])
         ) {
-
 
             playerVerificationService()
                 ->setMessage(
-
                     $tag,
-
-                    $chat_id,
-
+                    $chatId,
                     $response['result']['message_id']
-
                 );
 
         }
-
 
     }
 

@@ -46,7 +46,7 @@ class PlayerVerificationService
 
 
     // =====================================
-    // СОЗДАНИЕ МЕТОК ПРОВЕРКИ
+    // ГЕНЕРАЦИЯ МЕТОК
     // =====================================
 
     public function generateLabels(): array
@@ -59,7 +59,6 @@ class PlayerVerificationService
 
         return [
             'ids' => $ids,
-
             'names' => [
                 $labels[$ids[0]],
                 $labels[$ids[1]],
@@ -155,6 +154,31 @@ class PlayerVerificationService
 
 
 
+        // DEBUG LOG
+
+        writeLog(
+            "VERIFY TAG DB: " . $tag
+        );
+
+        writeLog(
+            "VERIFY TAG API: " .
+            ($player['tag'] ?? 'NULL')
+        );
+
+        writeLog(
+            "API LABELS: " .
+            json_encode(
+                $player['labels'] ?? []
+            )
+        );
+
+        writeLog(
+            "DB LABELS: " .
+            $verification['labels']
+        );
+
+
+
         if (
             !$this->checkLabels(
                 $player,
@@ -182,7 +206,7 @@ class PlayerVerificationService
 
 
     // =====================================
-    // ПРОВЕРКА НУЖНЫХ LABELS
+    // ПРОВЕРКА МЕТОК
     // =====================================
 
     private function checkLabels(
@@ -197,41 +221,34 @@ class PlayerVerificationService
             $player['labels'] ?? []
             as $label
         ) {
+
             $current[] =
                 (int)$label['id'];
-        }
 
+        }
 
 
         $required =
             array_map(
                 'intval',
-                explode(',', $required)
+                explode(
+                    ',',
+                    $required
+                )
             );
 
 
-
-        foreach ($required as $id) {
-
-            if (
-                !in_array(
-                    $id,
-                    $current,
-                    true
-                )
-            ) {
-                return false;
-            }
-
-        }
+        sort($current);
+        sort($required);
 
 
-        return true;
+
+        return $current === $required;
     }
 
 
 
-    // =====================================
+        // =====================================
     // УСПЕШНАЯ ПРИВЯЗКА
     // =====================================
 
@@ -241,11 +258,13 @@ class PlayerVerificationService
         array $player
     ): void
     {
-        // Берем тег клана напрямую из ответа Clash API
+        // Берем клан напрямую из ответа Clash API
+
         $clanTag =
             !empty($player['clan']['tag'])
                 ? normalizeTag($player['clan']['tag'])
                 : null;
+
 
 
         playerRepository()->sync(
@@ -255,7 +274,10 @@ class PlayerVerificationService
 
 
         $playerTag =
-            normalizeTag($player['tag']);
+            normalizeTag(
+                $player['tag']
+            );
+
 
 
         $this->players->create(
@@ -264,9 +286,11 @@ class PlayerVerificationService
         );
 
 
+
         $this->verifications->delete(
             $playerTag
         );
+
 
 
         telegram()->editMessage(
@@ -288,7 +312,7 @@ class PlayerVerificationService
 
 
     // =====================================
-    // РЕДАКТИРОВАНИЕ СТАТУСА ПРОВЕРКИ
+    // ИЗМЕНЕНИЕ СООБЩЕНИЯ ПРОВЕРКИ
     // =====================================
 
     private function editStatus(
@@ -300,9 +324,17 @@ class PlayerVerificationService
             $this->getVerificationLabels();
 
 
+
         $text =
             "🔐 <b>Проверка аккаунта</b>\n\n";
 
+
+
+        /*
+         * Имя и тег берем из API только если
+         * удалось получить игрока.
+         * Сам тег из БД всегда нормализован.
+         */
 
         $player =
             clashApi()->getPlayer(
@@ -314,36 +346,29 @@ class PlayerVerificationService
         if ($player) {
 
             $text .=
-                "👤 Игрок: <b>"
-                .
+                "👤 Игрок: <b>" .
                 htmlspecialchars(
                     $player['name']
-                )
-                .
+                ) .
                 "</b>\n";
 
 
+
             $text .=
-                "🎮 Тег: <code>#"
-                .
+                "🎮 Тег: <code>#" .
                 normalizeTag(
                     $player['tag']
-                )
-                .
+                ) .
                 "</code>\n\n";
 
-        }
-        else {
+        } else {
 
             $text .=
-                "🎮 Тег: <code>#"
-                .
+                "🎮 Тег: <code>#" .
                 normalizeTag(
                     $verification['player_tag']
-                )
-                .
+                ) .
                 "</code>\n\n";
-
         }
 
 
@@ -362,19 +387,19 @@ class PlayerVerificationService
         ) {
 
             $text .=
-                "🏷 "
-                .
-                ($labels[(int)$id] ?? $id)
-                .
+                "🏷 " .
+                (
+                    $labels[(int)$id]
+                    ??
+                    $id
+                ) .
                 "\n";
-
         }
 
 
 
         $text .=
-            "\n"
-            .
+            "\n" .
             $status;
 
 
@@ -405,10 +430,14 @@ class PlayerVerificationService
         return
             "✅ <b>Аккаунт успешно привязан!</b>\n\n" .
             "👤 Игрок: <b>" .
-            htmlspecialchars($player['name']) .
+            htmlspecialchars(
+                $player['name']
+            ) .
             "</b>\n" .
             "🎮 Тег: <code>#" .
-            normalizeTag($player['tag']) .
+            normalizeTag(
+                $player['tag']
+            ) .
             "</code>";
     }
 

@@ -181,10 +181,30 @@ function registerUser($user)
 function mentionUser($user)
 {
 
+    if (!empty($user['username'])) {
+
+        $name =
+            '@' .
+            ltrim(
+                $user['username'],
+                '@'
+            );
+
+    } else {
+
+        $name =
+            $user['first_name']
+            ??
+            'Игрок';
+
+    }
+
     return
         '<a href="tg://user?id=' .
-        $telegram_id .
-        '">⁣</a>';
+        $user['telegram_id'] .
+        '">' .
+        htmlspecialchars($name) .
+        '</a>';
 }
 
 

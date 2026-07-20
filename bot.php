@@ -1,15 +1,5 @@
 <?php
 
-
-$update = file_get_contents('php://input');
-
-file_put_contents(
-    __DIR__ . '/update_log.json',
-    $update . PHP_EOL . PHP_EOL,
-    FILE_APPEND
-);
-
-
 // BOOTSTRAP
 
 require_once __DIR__ . '/app/bootstrap.php';

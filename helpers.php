@@ -181,9 +181,7 @@ function registerUser($user)
 function mentionUser($user)
 {
 
-    if (
-        !empty($user['username'])
-    ) {
+    if (!empty($user['username'])) {
 
         $name =
             '@' .
@@ -192,8 +190,7 @@ function mentionUser($user)
                 '@'
             );
 
-    }
-    else {
+    } else {
 
         $name =
             $user['first_name']
@@ -202,20 +199,12 @@ function mentionUser($user)
 
     }
 
-
-
     return
-
         '<a href="tg://user?id=' .
         $user['telegram_id'] .
         '">' .
-
-        htmlspecialchars(
-            $name
-        ) .
-
+        htmlspecialchars($name) .
         '</a>';
-
 }
 
 

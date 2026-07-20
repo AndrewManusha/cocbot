@@ -1,9 +1,11 @@
 <?php
 
 
+$update = file_get_contents('php://input');
+
 file_put_contents(
-    __DIR__ . '/alive.txt',
-    date('H:i:s') . " работает\n",
+    __DIR__ . '/update_log.json',
+    $update . PHP_EOL . PHP_EOL,
     FILE_APPEND
 );
 

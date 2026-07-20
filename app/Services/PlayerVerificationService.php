@@ -1,9 +1,7 @@
 <?php
 
-
 class PlayerVerificationService
 {
-
     private VerificationRepository $verifications;
     private UserPlayerRepository $players;
 
@@ -26,7 +24,6 @@ class PlayerVerificationService
     public function getVerificationLabels(): array
     {
         return [
-
             57000000 => 'Clan Wars',
             57000001 => 'Clan War League',
             57000002 => 'Trophy Pushing',
@@ -46,7 +43,6 @@ class PlayerVerificationService
             57000016 => 'Newbie',
             57000017 => 'Amateur Attacker',
             57000018 => 'Clan Capital'
-
         ];
     }
 
@@ -73,7 +69,6 @@ class PlayerVerificationService
 
 
         return [
-
             'ids' => $ids,
 
             'names' => [
@@ -81,15 +76,10 @@ class PlayerVerificationService
                 $labels[$ids[1]],
                 $labels[$ids[2]]
             ]
-
         ];
     }
 
 
-
-    // =====================================
-    // СОЗДАНИЕ ПРОВЕРКИ
-    // =====================================
 
     public function create(
         int $telegramId,
@@ -122,7 +112,7 @@ class PlayerVerificationService
 
 
     // =====================================
-    // ПРОВЕРКА CALLBACK
+    // ПРОВЕРКА АККАУНТА
     // =====================================
 
     public function verify(
@@ -130,22 +120,25 @@ class PlayerVerificationService
         string $tag
     ): void
     {
-
         $tag =
             normalizeTag($tag);
+
 
 
         $verification =
             $this->verifications->find($tag);
 
 
+
         if (!$verification) {
+
             return;
+
         }
 
 
 
-        // Защита от чужого нажатия
+        // Чужая кнопка
 
         if (
             (int)$verification['telegram_id']
@@ -166,7 +159,7 @@ class PlayerVerificationService
 
         if (!$player) {
 
-            $this->editError(
+            $this->editMessage(
                 $verification,
                 "❌ Не удалось получить данные игрока."
             );
@@ -177,6 +170,30 @@ class PlayerVerificationService
 
 
 
+        writeLog(
+            "VERIFY TAG DB: " .
+            $verification['player_tag']
+        );
+
+        writeLog(
+            "VERIFY TAG API: " .
+            $player['tag']
+        );
+
+        writeLog(
+            "API LABELS: " .
+            json_encode(
+                $player['labels'] ?? []
+            )
+        );
+
+        writeLog(
+            "DB LABELS: " .
+            $verification['labels']
+        );
+
+
+
         if (
             !$this->checkLabels(
                 $player,
@@ -184,9 +201,8 @@ class PlayerVerificationService
             )
         ) {
 
-            $this->editFailedLabels(
-                $verification,
-                $player
+            $this->editFailed(
+                $verification
             );
 
             return;
@@ -195,10 +211,38 @@ class PlayerVerificationService
 
 
 
-        $this->complete(
-            $verification,
+        playerRepository()->sync(
+            $player,
+            CLAN_TAG
+        );
+
+
+
+        $this->players->create(
             $telegramId,
-            $player
+            normalizeTag($player['tag'])
+        );
+
+
+
+        $this->verifications->delete(
+            $tag
+        );
+
+
+
+        telegram()->editMessage(
+            $verification['chat_id'],
+            $verification['message_id'],
+            $this->successText($player),
+            [
+                'reply_markup' =>
+                    json_encode(
+                        [
+                            'inline_keyboard' => []
+                        ]
+                    )
+            ]
         );
 
     }
@@ -209,12 +253,11 @@ class PlayerVerificationService
     // ПРОВЕРКА LABELS
     // =====================================
 
-    public function checkLabels(
+    private function checkLabels(
         array $player,
         string $required
     ): bool
     {
-
         $current = [];
 
 
@@ -229,6 +272,7 @@ class PlayerVerificationService
         }
 
 
+
         $required =
             array_map(
                 'intval',
@@ -236,154 +280,118 @@ class PlayerVerificationService
             );
 
 
-        sort($current);
-        sort($required);
+
+        foreach ($required as $id) {
+
+            if (
+                !in_array(
+                    $id,
+                    $current,
+                    true
+                )
+            ) {
+
+                return false;
+
+            }
+
+        }
 
 
-        return $current === $required;
+        return true;
     }
 
 
 
     // =====================================
-    // УСПЕШНАЯ ВЕРИФИКАЦИЯ
+    // ОШИБКА МЕТОК
     // =====================================
 
-    private function complete(
-        array $verification,
-        int $telegramId,
-        array $player
+    private function editFailed(
+        array $verification
     ): void
     {
-
-        playerRepository()->sync(
-            $player,
-            CLAN_TAG
-        );
-
-
-        $this->players->create(
-            $telegramId,
-            normalizeTag($player['tag'])
-        );
-
-
-        $this->verifications->delete(
-            normalizeTag($player['tag'])
-        );
-
-
-
         telegram()->editMessage(
             $verification['chat_id'],
             $verification['message_id'],
-            $this->successText($player),
+            $this->failedText($verification),
             [
                 'reply_markup' =>
                     json_encode(
                         [
-                            'inline_keyboard' => []
-                        ],
-                        JSON_UNESCAPED_UNICODE
+                            'inline_keyboard' => [
+                                [
+                                    [
+                                        'text' => '✅ Проверить',
+                                        'callback_data' =>
+                                            'verify_' .
+                                            $verification['player_tag']
+                                    ]
+                                ]
+                            ]
+                        ]
                     )
             ]
         );
-
     }
 
 
 
-    // =====================================
-    // НЕПРАВИЛЬНЫЕ LABELS
-    // =====================================
-
-    private function editFailedLabels(
-        array $verification,
-        array $player
-    ): void
-    {
-
-        telegram()->editMessage(
-            $verification['chat_id'],
-            $verification['message_id'],
-            $this->failedText(
-                $verification,
-                $player
-            ),
-            [
-                'reply_markup' =>
-                    $this->button(
-                        $player['tag']
-                    )
-            ]
-        );
-
-    }
-
-
-
-    private function editError(
+    private function editMessage(
         array $verification,
         string $text
     ): void
     {
-
         telegram()->editMessage(
             $verification['chat_id'],
             $verification['message_id'],
             $text,
             [
                 'reply_markup' =>
-                    $this->button(
-                        $verification['player_tag']
+                    json_encode(
+                        [
+                            'inline_keyboard' => []
+                        ]
                     )
             ]
         );
-
     }
 
 
 
-    // =====================================
-    // ТЕКСТЫ
-    // =====================================
-
     private function failedText(
-        array $verification,
-        array $player
+        array $verification
     ): string
     {
-
         $labels =
             $this->getVerificationLabels();
+
 
 
         $text =
             "🔐 <b>Проверка аккаунта</b>\n\n";
 
 
-        $text .=
-            "👤 Игрок: <b>"
-            .
-            htmlspecialchars($player['name'])
-            .
-            "</b>\n";
-
 
         $text .=
             "🎮 Тег: <code>#"
             .
-            normalizeTag($player['tag'])
+            $verification['player_tag']
             .
             "</code>\n\n";
+
 
 
         $text .=
             "Установите следующие метки:\n\n";
 
 
+
         foreach (
-            explode(',', $verification['labels'])
+            explode(
+                ',',
+                $verification['labels']
+            )
             as $id
         ) {
 
@@ -397,10 +405,10 @@ class PlayerVerificationService
         }
 
 
+
         return $text .
             "\n❌ Информация ещё не обновилась или метки установлены неверно." .
             "\nПопробуйте снова через минуту.";
-
     }
 
 
@@ -409,40 +417,18 @@ class PlayerVerificationService
         array $player
     ): string
     {
-
         return
             "✅ <b>Аккаунт успешно привязан!</b>\n\n" .
             "👤 Игрок: <b>" .
-            htmlspecialchars($player['name']) .
+            htmlspecialchars(
+                $player['name']
+            ) .
             "</b>\n" .
             "🎮 Тег: <code>#" .
-            normalizeTag($player['tag']) .
+            normalizeTag(
+                $player['tag']
+            ) .
             "</code>";
-
     }
-
-
-
-    private function button(
-        string $tag
-    ): string
-    {
-
-        return json_encode(
-            [
-                'inline_keyboard' => [
-                    [
-                        [
-                            'text' => '✅ Проверить',
-                            'callback_data' => 'verify_' . normalizeTag($tag)
-                        ]
-                    ]
-                ]
-            ],
-            JSON_UNESCAPED_UNICODE
-        );
-
-    }
-
 
 }

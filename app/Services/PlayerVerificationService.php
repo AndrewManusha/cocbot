@@ -241,22 +241,32 @@ class PlayerVerificationService
         array $player
     ): void
     {
+        // Берем тег клана напрямую из ответа Clash API
+        $clanTag =
+            !empty($player['clan']['tag'])
+                ? normalizeTag($player['clan']['tag'])
+                : null;
+
+
         playerRepository()->sync(
             $player,
-            CLAN_TAG
+            $clanTag
         );
+
+
+        $playerTag =
+            normalizeTag($player['tag']);
 
 
         $this->players->create(
             $telegramId,
-            normalizeTag($player['tag'])
+            $playerTag
         );
 
 
         $this->verifications->delete(
-            normalizeTag($player['tag'])
+            $playerTag
         );
-
 
 
         telegram()->editMessage(
@@ -267,7 +277,7 @@ class PlayerVerificationService
                 'reply_markup' =>
                     json_encode(
                         [
-                                            'inline_keyboard' => []
+                            'inline_keyboard' => []
                         ],
                         JSON_UNESCAPED_UNICODE
                     )

@@ -9,57 +9,64 @@ class ClashApi
 
 
 
-    /**
-     * Выполняет GET-запрос к Clash of Clans API
-     *
-     * @param string $endpoint
-     * @return array|false
-     */
-    private function request($endpoint)
-    {
+    // =====================================
+    // ВЫПОЛНЕНИЕ API ЗАПРОСА
+    // =====================================
 
+    private function request(
+        string $endpoint
+    ): array|false
+    {
         $url =
             $this->baseUrl .
-            ltrim($endpoint, '/');
+            ltrim(
+                $endpoint,
+                '/'
+            );
 
 
         $ch =
-            curl_init($url);
+            curl_init(
+                $url
+            );
 
 
-        curl_setopt_array($ch, [
+        curl_setopt_array(
+            $ch,
+            [
+                CURLOPT_RETURNTRANSFER => true,
 
-            CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 10,
 
-            CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT => 20,
 
-            CURLOPT_TIMEOUT => 20,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Bearer ' .
+                    CLASH_API_TOKEN,
 
-            CURLOPT_HTTPHEADER => [
-
-                'Authorization: Bearer ' . CLASH_API_TOKEN,
-
-                'Accept: application/json'
-
+                    'Accept: application/json'
+                ]
             ]
-
-        ]);
+        );
 
 
         $response =
-            curl_exec($ch);
+            curl_exec(
+                $ch
+            );
 
 
-        if (curl_errno($ch)) {
+        if (
+            curl_errno($ch)
+        ) {
 
             curl_close($ch);
 
             return false;
-
         }
 
 
-        $httpCode =
+        $status =
             curl_getinfo(
                 $ch,
                 CURLINFO_HTTP_CODE
@@ -69,13 +76,12 @@ class ClashApi
         curl_close($ch);
 
 
-
-        if ($httpCode !== 200) {
+        if (
+            $status !== 200
+        ) {
 
             return false;
-
         }
-
 
 
         $data =
@@ -85,141 +91,125 @@ class ClashApi
             );
 
 
-
-        if (!is_array($data)) {
-
-            return false;
-
-        }
-
-
-        return $data;
-
+        return is_array($data)
+            ? $data
+            : false;
     }
 
 
 
+    // =====================================
+    // ПОЛУЧИТЬ КЛАН
+    // =====================================
 
-
-    /**
-     * Получить информацию о клане
-     *
-     * @param string $tag
-     * @return array|false
-     */
-    public function getClan($tag)
+    public function getClan(
+        string $tag
+    ): array|false
     {
-
         $tag =
             normalizeTag(
                 $tag
             );
+
+
+        if (
+            $tag === ''
+        ) {
+
+            return false;
+        }
 
 
         return $this->request(
             "clans/%23{$tag}"
         );
-
     }
 
 
 
+    // =====================================
+    // ПОЛУЧИТЬ ИГРОКА
+    // =====================================
 
-
-    /**
-     * Получить информацию об игроке
-     *
-     * @param string $tag
-     * @return array|false
-     */
-    public function getPlayer($tag)
+    public function getPlayer(
+        string $tag
+    ): array|false
     {
-
         $tag =
             normalizeTag(
                 $tag
             );
+
+
+        if (
+            $tag === ''
+        ) {
+
+            return false;
+        }
 
 
         return $this->request(
             "players/%23{$tag}"
         );
-
     }
 
 
 
+    // =====================================
+    // ТЕКУЩАЯ ВОЙНА
+    // =====================================
 
-
-    /**
-     * Получить текущую войну клана
-     *
-     * @param string $tag
-     * @return array|false
-     */
-    public function getCurrentWar($tag)
+    public function getCurrentWar(
+        string $tag
+    ): array|false
     {
-
         $tag =
             normalizeTag(
                 $tag
             );
+
+
+        if (
+            $tag === ''
+        ) {
+
+            return false;
+        }
 
 
         return $this->request(
             "clans/%23{$tag}/currentwar"
         );
-
     }
 
 
 
+    // =====================================
+    // ГРУППА КВЛ
+    // =====================================
 
-
-    /**
-     * Получить участников клана
-     *
-     * @param string $tag
-     * @return array|false
-     */
-    public function getClanMembers($tag)
+    public function getCurrentWarLeagueGroup(
+        string $tag
+    ): array|false
     {
-
         $tag =
             normalizeTag(
                 $tag
             );
 
 
-        return $this->request(
-            "clans/%23{$tag}/members"
-        );
+        if (
+            $tag === ''
+        ) {
 
-    }
-
-
-
-
-
-    /**
-     * Получить текущую КВЛ
-     *
-     * @param string $tag
-     * @return array|false
-     */
-    public function getCurrentWarLeagueGroup($tag)
-    {
-
-        $tag =
-            normalizeTag(
-                $tag
-            );
+            return false;
+        }
 
 
         return $this->request(
             "clans/%23{$tag}/currentwar/leaguegroup"
         );
-
     }
 
 }

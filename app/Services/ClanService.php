@@ -10,53 +10,43 @@ class ClanService
 
     public function __construct()
     {
-
         $this->clans =
             clanRepository();
-
     }
 
 
 
-
-
     // =====================================
-    // ПРОВЕРКА КЛАНА
+    // ПОЛУЧИТЬ КЛАН
     // =====================================
 
-    public function exists(
+    public function find(
         string $tag
-    ): bool
+    ): ?array
     {
-
         return $this->clans
-            ->exists(
-                $tag
+            ->find(
+                normalizeTag($tag)
             );
-
     }
 
 
 
-
-
     // =====================================
-    // ДОБАВЛЕНИЕ КЛАНА
+    // СОХРАНИТЬ КЛАН
     // =====================================
 
-    public function add(
-        array $clan
+    public function save(
+        array $clan,
+        string $hash
     ): bool
     {
-
         return $this->clans
-            ->create(
-                $clan
+            ->save(
+                $clan,
+                $hash
             );
-
     }
-
-
 
 
 
@@ -68,42 +58,20 @@ class ClanService
         string $tag
     ): array
     {
-
         $tag =
             normalizeTag(
                 $tag
             );
 
 
-
-        if (!$tag) {
-
-            return [
-
-                'success' => false,
-
-                'message' =>
-                    'Не указан тег клана.'
-
-            ];
-
-        }
-
-
-
         if (
-            $this->exists(
-                $tag
-            )
+            $tag === ''
         ) {
 
             return [
-
                 'success' => false,
-
                 'message' =>
-                    '⚠️ Этот клан уже добавлен.'
-
+                    'Не указан тег клана.'
             ];
 
         }
@@ -118,55 +86,97 @@ class ClanService
 
 
 
-        if (!$clan) {
+        if (
+            !$clan
+        ) {
 
             return [
-
                 'success' => false,
-
                 'message' =>
                     '❌ Клан не найден.'
-
             ];
 
         }
 
 
 
+        $clan['tag'] =
+            normalizeTag(
+                $clan['tag']
+            );
+
+
+
+        // Убираем участников из hash
+
+        $hashData =
+            $clan;
+
+
+        unset(
+            $hashData['memberList']
+        );
+
+
+
+        $hash =
+            md5(
+                json_encode(
+                    $hashData
+                )
+            );
+
+
+
         if (
-            !$this->add(
-                $clan
+            !$this->save(
+                $clan,
+                $hash
             )
         ) {
 
             return [
-
                 'success' => false,
-
                 'message' =>
                     '❌ Ошибка сохранения.'
-
             ];
+
+        }
+
+
+
+        // Сохраняем участников
+
+        foreach (
+            $clan['memberList']
+            ??
+            []
+            as $player
+        ) {
+
+            playerRepository()
+                ->sync(
+                    $player,
+                    $clan['tag']
+                );
 
         }
 
 
 
         return [
-
             'success' => true,
 
             'message' =>
-                "✅ Клан добавлен:\n\n" .
+                "✅ Клан сохранен:\n\n" .
+
                 "🏰 {$clan['name']}\n" .
+
                 "🎯 Уровень: {$clan['clanLevel']}\n" .
+
                 "👥 Участников: {$clan['members']}"
-
         ];
-
     }
-
-
 
 
 
@@ -176,10 +186,9 @@ class ClanService
 
     public function all(): array
     {
-
         return $this->clans
             ->all();
-
     }
+
 
 }

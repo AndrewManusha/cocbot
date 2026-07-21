@@ -7,15 +7,13 @@ class PlayerRepository
     private PDO $db;
 
 
+
     public function __construct()
     {
-
         $this->db =
-            database()->getConnection();
-
+            database()
+                ->getConnection();
     }
-
-
 
 
 
@@ -23,15 +21,19 @@ class PlayerRepository
     // ПРОВЕРКА СУЩЕСТВОВАНИЯ ИГРОКА
     // =====================================
 
-    public function exists(string $playerTag): bool
+    public function exists(
+        string $playerTag
+    ): bool
     {
-
-        $playerTag = normalizeTag($playerTag);
+        $playerTag =
+            normalizeTag(
+                $playerTag
+            );
 
 
         $stmt =
-            $this->db->prepare("
-
+            $this->db->prepare(
+                "
                 SELECT player_tag
 
                 FROM players
@@ -39,183 +41,287 @@ class PlayerRepository
                 WHERE player_tag = ?
 
                 LIMIT 1
-
-            ");
+                "
+            );
 
 
         $stmt->execute([
-
             $playerTag
-
         ]);
 
 
         return (bool)$stmt->fetchColumn();
-
     }
 
 
 
-
     // =====================================
-    // СОХРАНИТЬ ТЕГ ПОЛЬЗОВАТЕЛЯ
+    // СОХРАНИТЬ УЧАСТНИКА КЛАНА
     // =====================================
 
-    public function setUserTag(
-        int $telegramId,
-        string $playerTag
+    public function sync(
+        array $player,
+        string $clanTag
     ): bool
     {
+        $playerTag =
+            normalizeTag(
+                $player['tag']
+                ??
+                ''
+            );
 
-        $playerTag = normalizeTag($playerTag);
 
+        $clanTag =
+            normalizeTag(
+                $clanTag
+            );
 
 
         if (
-            !$this->checkPlayerExistsInClan(
-                $playerTag
-            )
+            $playerTag === ''
+            ||
+            $clanTag === ''
         ) {
 
             return false;
-
         }
 
 
 
         $stmt =
-            $this->db->prepare("
-
-                UPDATE users
-
-                SET player_tag = ?
-
-                WHERE telegram_id = ?
-
-            ");
-
-
-
-        return $stmt->execute([
-
-            $playerTag,
-
-            $telegramId
-
-        ]);
-
-    }
-
-
-
-
-    // =====================================
-    // ПРОВЕРКА ИГРОКА В КЛАНЕ
-    // =====================================
-    // Временно оставляем как было.
-    // Потом заменим на ClanMemberRepository.
-
-    private function checkPlayerExistsInClan(
-        string $playerTag
-    ): bool
-    {
-
-        return true;
-
-    }
-
-
-
-
-
-
-
-
-    public function sync(array $player, string $clanTag): bool
-    {
-
-        $stmt =
-            $this->db->prepare("
-
+            $this->db->prepare(
+                "
                 INSERT INTO players
                 (
                     player_tag,
                     clan_tag,
+
                     name,
                     role,
                     league,
+
                     town_hall_level,
                     exp_level,
+
                     war_stars,
+
                     donations,
                     donations_received,
+
                     clan_capital_contributions,
+
                     last_sync
                 )
 
                 VALUES
-
                 (
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
+                    :player_tag,
+                    :clan_tag,
+
+                    :name,
+                    :role,
+                    :league,
+
+                    :town_hall_level,
+                    :exp_level,
+
+                    :war_stars,
+
+                    :donations,
+                    :donations_received,
+
+                    :clan_capital_contributions,
+
                     NOW()
                 )
 
 
                 ON DUPLICATE KEY UPDATE
 
-                    clan_tag = VALUES(clan_tag),
-                    name = VALUES(name),
-                    role = VALUES(role),
-                    league = VALUES(league),
-                    town_hall_level = VALUES(town_hall_level),
-                    exp_level = VALUES(exp_level),
-                    war_stars = VALUES(war_stars),
-                    donations = VALUES(donations),
-                    donations_received = VALUES(donations_received),
-                    clan_capital_contributions = VALUES(clan_capital_contributions),
-                    last_sync = NOW()
 
-            ");
+                    clan_tag =
+                        VALUES(clan_tag),
+
+
+                    name =
+                        VALUES(name),
+
+
+                    role =
+                        VALUES(role),
+
+
+                    league =
+                        VALUES(league),
+
+
+                    town_hall_level =
+                        VALUES(town_hall_level),
+
+
+                    exp_level =
+                        VALUES(exp_level),
+
+
+                    war_stars =
+                        VALUES(war_stars),
+
+
+                    donations =
+                        VALUES(donations),
+
+
+                    donations_received =
+                        VALUES(donations_received),
+
+
+                    clan_capital_contributions =
+                        VALUES(clan_capital_contributions),
+
+
+                    last_sync =
+                        NOW()
+
+                "
+            );
 
 
 
         return $stmt->execute([
 
-            normalizeTag($player['tag']),
+            'player_tag' =>
+                $playerTag,
 
-            $clanTag,
 
-            $player['name'],
+            'clan_tag' =>
+                $clanTag,
 
-            $player['role'] ?? '',
 
-            $player['leagueTier']['name'] ?? '',
+            'name' =>
+                $player['name']
+                ??
+                '',
 
-            $player['townHallLevel'] ?? 0,
 
-            $player['expLevel'] ?? 0,
+            'role' =>
+                $player['role']
+                ??
+                '',
 
-            $player['warStars'] ?? 0,
 
-            $player['donations'] ?? 0,
+            'league' =>
+                $player['leagueTier']['name']
+                ??
+                '',
 
-            $player['donationsReceived'] ?? 0,
 
-            $player['clanCapitalContributions'] ?? 0
+            'town_hall_level' =>
+                $player['townHallLevel']
+                ??
+                0,
+
+
+            'exp_level' =>
+                $player['expLevel']
+                ??
+                0,
+
+
+            'war_stars' =>
+                $player['warStars']
+                ??
+                0,
+
+
+            'donations' =>
+                $player['donations']
+                ??
+                0,
+
+
+            'donations_received' =>
+                $player['donationsReceived']
+                ??
+                0,
+
+
+            'clan_capital_contributions' =>
+                $player['clanCapitalContributions']
+                ??
+                0
 
         ]);
-
     }
+
+
+
+    // =====================================
+    // ПОЛУЧИТЬ ИГРОКА
+    // =====================================
+
+    public function find(
+        string $playerTag
+    ): ?array
+    {
+        $stmt =
+            $this->db->prepare(
+                "
+                SELECT *
+
+                FROM players
+
+                WHERE player_tag = ?
+
+                LIMIT 1
+                "
+            );
+
+
+        $stmt->execute([
+            normalizeTag($playerTag)
+        ]);
+
+
+        $player =
+            $stmt->fetch();
+
+
+        return $player ?: null;
+    }
+
+
+
+    // =====================================
+    // ПОЛУЧИТЬ ИГРОКОВ КЛАНА
+    // =====================================
+
+    public function getByClan(
+        string $clanTag
+    ): array
+    {
+        $stmt =
+            $this->db->prepare(
+                "
+                SELECT *
+
+                FROM players
+
+                WHERE clan_tag = ?
+
+                ORDER BY name
+                "
+            );
+
+
+        $stmt->execute([
+            normalizeTag($clanTag)
+        ]);
+
+
+        return $stmt->fetchAll();
+    }
+
 
 
 }

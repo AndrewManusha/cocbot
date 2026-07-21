@@ -1,7 +1,9 @@
 <?php
 
+
 class ClanRepository
 {
+
     private PDO $db;
 
 
@@ -16,7 +18,7 @@ class ClanRepository
 
 
     // =====================================
-    // ПОЛУЧЕНИЕ КЛАНА
+    // ПОЛУЧИТЬ КЛАН
     // =====================================
 
     public function find(
@@ -52,7 +54,7 @@ class ClanRepository
 
 
     // =====================================
-    // СОХРАНЕНИЕ КЛАНА
+    // СОХРАНИТЬ КЛАН
     // =====================================
 
     public function save(
@@ -73,8 +75,6 @@ class ClanRepository
 
 
 
-        // Новый клан
-
         if (!$exists) {
 
             return $this->create(
@@ -85,8 +85,6 @@ class ClanRepository
         }
 
 
-
-        // Проверка без изменений
 
         if (
             $exists['api_hash']
@@ -102,8 +100,6 @@ class ClanRepository
 
 
 
-        // Данные изменились
-
         return $this->update(
             $clan,
             $hash
@@ -113,7 +109,7 @@ class ClanRepository
 
 
     // =====================================
-    // СОЗДАНИЕ КЛАНА
+    // СОЗДАНИЕ
     // =====================================
 
     private function create(
@@ -137,6 +133,7 @@ class ClanRepository
                     name,
                     description,
                     type,
+
                     is_family_friendly,
 
                     location_id,
@@ -200,6 +197,7 @@ class ClanRepository
                     :name,
                     :description,
                     :type,
+
                     :is_family_friendly,
 
                     :location_id,
@@ -266,8 +264,9 @@ class ClanRepository
     }
 
 
+
     // =====================================
-    // ОБНОВЛЕНИЕ КЛАНА
+    // ОБНОВЛЕНИЕ
     // =====================================
 
     private function update(
@@ -280,7 +279,6 @@ class ClanRepository
                 $clan,
                 $hash
             );
-
 
 
         $stmt =
@@ -341,7 +339,6 @@ class ClanRepository
                     badge_medium = :badge_medium,
                     badge_large = :badge_large,
 
-
                     api_hash = :api_hash,
 
                     checks_count = checks_count + 1,
@@ -359,7 +356,6 @@ class ClanRepository
                     updated_at = NOW(),
                     checked_at = NOW()
 
-
                 WHERE tag = :tag
                 "
             );
@@ -369,8 +365,6 @@ class ClanRepository
             $data
         );
     }
-
-
 
 
 
@@ -392,7 +386,6 @@ class ClanRepository
                     checks_count =
                         checks_count + 1,
 
-
                     recent_checks =
                         CONCAT(
                             RIGHT(
@@ -401,7 +394,6 @@ class ClanRepository
                             ),
                             '0'
                         ),
-
 
                     checked_at = NOW()
 
@@ -417,10 +409,8 @@ class ClanRepository
 
 
 
-
-
     // =====================================
-    // ПРЕОБРАЗОВАНИЕ API → DATABASE
+    // API → DATABASE
     // =====================================
 
     private function mapClan(
@@ -435,208 +425,215 @@ class ClanRepository
                     $clan['tag']
                 ),
 
-
             'name' =>
-                $clan['name'] ?? '',
-
+                $clan['name']
+                ??
+                '',
 
             'description' =>
-                $clan['description'] ?? null,
-
+                $clan['description']
+                ??
+                null,
 
             'type' =>
-                $clan['type'] ?? '',
+                $clan['type']
+                ??
+                '',
 
 
             'is_family_friendly' =>
                 $clan['isFamilyFriendly']
-                ?? 0,
-
+                ??
+                0,
 
 
             'location_id' =>
                 $clan['location']['id']
-                ?? null,
-
+                ??
+                null,
 
             'location_name' =>
                 $clan['location']['name']
-                ?? null,
-
+                ??
+                null,
 
             'location_is_country' =>
                 $clan['location']['isCountry']
-                ?? null,
-
+                ??
+                null,
 
             'country_code' =>
                 $clan['location']['countryCode']
-                ?? null,
-
+                ??
+                null,
 
 
             'language_id' =>
                 $clan['chatLanguage']['id']
-                ?? null,
-
+                ??
+                null,
 
             'language_name' =>
                 $clan['chatLanguage']['name']
-                ?? null,
-
+                ??
+                null,
 
             'language_code' =>
                 $clan['chatLanguage']['languageCode']
-                ?? null,
-
+                ??
+                null,
 
 
             'required_league_tier_id' =>
                 $clan['requiredLeagueTier']['id']
-                ?? null,
-
+                ??
+                null,
 
             'required_league_tier_name' =>
                 $clan['requiredLeagueTier']['name']
-                ?? null,
-
+                ??
+                null,
 
 
             'clan_level' =>
                 $clan['clanLevel']
-                ?? 0,
-
+                ??
+                0,
 
             'members' =>
                 $clan['members']
-                ?? 0,
+                ??
+                0,
 
 
             'clan_points' =>
                 $clan['clanPoints']
-                ?? 0,
-
+                ??
+                0,
 
             'clan_builder_base_points' =>
                 $clan['clanBuilderBasePoints']
-                ?? 0,
-
+                ??
+                0,
 
             'clan_capital_points' =>
                 $clan['clanCapitalPoints']
-                ?? 0,
-
+                ??
+                0,
 
 
             'war_frequency' =>
                 $clan['warFrequency']
-                ?? null,
-
+                ??
+                null,
 
             'war_wins' =>
                 $clan['warWins']
-                ?? 0,
-
+                ??
+                0,
 
             'war_losses' =>
                 $clan['warLosses']
-                ?? 0,
-
+                ??
+                0,
 
             'war_ties' =>
                 $clan['warTies']
-                ?? 0,
-
+                ??
+                0,
 
             'war_win_streak' =>
                 $clan['warWinStreak']
-                ?? 0,
-
+                ??
+                0,
 
             'is_war_log_public' =>
                 $clan['isWarLogPublic']
-                ?? 0,
-
+                ??
+                0,
 
 
             'war_league_id' =>
                 $clan['warLeague']['id']
-                ?? null,
-
+                ??
+                null,
 
             'war_league_name' =>
                 $clan['warLeague']['name']
-                ?? null,
-
+                ??
+                null,
 
 
             'capital_league_id' =>
                 $clan['capitalLeague']['id']
-                ?? null,
-
+                ??
+                null,
 
             'capital_league_name' =>
                 $clan['capitalLeague']['name']
-                ?? null,
-
+                ??
+                null,
 
 
             'required_trophies' =>
                 $clan['requiredTrophies']
-                ?? 0,
-
+                ??
+                0,
 
             'required_builder_base_trophies' =>
                 $clan['requiredBuilderBaseTrophies']
-                ?? 0,
-
+                ??
+                0,
 
             'required_townhall_level' =>
                 $clan['requiredTownhallLevel']
-                ?? 0,
-
+                ??
+                0,
 
 
             'capital_hall_level' =>
                 $clan['clanCapital']['capitalHallLevel']
-                ?? 0,
+                ??
+                0,
 
 
             'districts' =>
                 json_encode(
                     $clan['clanCapital']['districts']
-                    ?? []
+                    ??
+                    []
                 ),
 
 
             'labels' =>
                 json_encode(
                     $clan['labels']
-                    ?? []
+                    ??
+                    []
                 ),
-
 
 
             'badge_small' =>
                 $clan['badgeUrls']['small']
-                ?? null,
-
+                ??
+                null,
 
             'badge_medium' =>
                 $clan['badgeUrls']['medium']
-                ?? null,
-
+                ??
+                null,
 
             'badge_large' =>
                 $clan['badgeUrls']['large']
-                ?? null,
+                ??
+                null,
 
 
             'api_hash' =>
                 $hash
-
         ];
     }
+
 
 
     // =====================================
@@ -664,10 +661,8 @@ class ClanRepository
 
 
 
-
-
     // =====================================
-    // ВСЕ ТЕГИ КЛАНОВ
+    // ВСЕ TAG КЛАНОВ
     // =====================================
 
     public function getTags(): array
@@ -686,4 +681,5 @@ class ClanRepository
             PDO::FETCH_COLUMN
         );
     }
+
 }

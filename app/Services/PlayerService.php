@@ -24,8 +24,6 @@ class PlayerService
 
 
 
-
-
     // =====================================
     // ПРОВЕРКА СУЩЕСТВОВАНИЯ ИГРОКА
     // =====================================
@@ -34,55 +32,43 @@ class PlayerService
         string $tag
     ): bool
     {
-
         return $this->players
             ->exists(
-                $tag
+                normalizeTag($tag)
             );
-
     }
 
 
 
-
-
     // =====================================
-    // ПОЛУЧИТЬ ВСЕ АККАУНТЫ ПОЛЬЗОВАТЕЛЯ
+    // ПОЛУЧИТЬ АККАУНТЫ ПОЛЬЗОВАТЕЛЯ
     // =====================================
 
     public function getUserPlayers(
-        int $telegram_id
+        int $telegramId
     ): array
     {
-
         return $this->userPlayers
             ->getByUser(
-                $telegram_id
+                $telegramId
             );
-
     }
 
 
 
-
-
     // =====================================
-    // ПОЛУЧИТЬ ГЛАВНЫЙ АККАУНТ
+    // ПОЛУЧИТЬ ОСНОВНОЙ АККАУНТ
     // =====================================
 
     public function getMainPlayer(
-        int $telegram_id
+        int $telegramId
     ): ?array
     {
-
         return $this->userPlayers
             ->getMain(
-                $telegram_id
+                $telegramId
             );
-
     }
-
-
 
 
 
@@ -94,15 +80,11 @@ class PlayerService
         string $tag
     ): ?array
     {
-
         return $this->userPlayers
             ->getByTag(
-                $tag
+                normalizeTag($tag)
             );
-
     }
-
-
 
 
 
@@ -114,15 +96,11 @@ class PlayerService
         string $tag
     ): bool
     {
-
         return $this->userPlayers
             ->exists(
-                $tag
+                normalizeTag($tag)
             );
-
     }
-
-
 
 
 
@@ -131,20 +109,16 @@ class PlayerService
     // =====================================
 
     public function belongsToUser(
-        int $telegram_id,
+        int $telegramId,
         string $tag
     ): bool
     {
-
         return $this->userPlayers
             ->belongsToUser(
-                $telegram_id,
-                $tag
+                $telegramId,
+                normalizeTag($tag)
             );
-
     }
-
-
 
 
 
@@ -153,20 +127,16 @@ class PlayerService
     // =====================================
 
     public function link(
-        int $telegram_id,
+        int $telegramId,
         string $tag
     ): bool
     {
-
         return $this->userPlayers
             ->create(
-                $telegram_id,
-                $tag
+                $telegramId,
+                normalizeTag($tag)
             );
-
     }
-
-
 
 
 
@@ -175,20 +145,16 @@ class PlayerService
     // =====================================
 
     public function setMain(
-        int $telegram_id,
+        int $telegramId,
         string $tag
     ): bool
     {
-
         return $this->userPlayers
             ->setMain(
-                $telegram_id,
-                $tag
+                $telegramId,
+                normalizeTag($tag)
             );
-
     }
-
-
 
 
 
@@ -197,17 +163,15 @@ class PlayerService
     // =====================================
 
     public function unlink(
-        int $telegram_id,
+        int $telegramId,
         string $tag
     ): bool
     {
-
         return $this->userPlayers
             ->delete(
-                $telegram_id,
-                $tag
+                $telegramId,
+                normalizeTag($tag)
             );
-
     }
 
 
